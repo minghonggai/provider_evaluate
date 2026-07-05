@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Provider Verify Report Index v1",
+  "type": "object",
+  "required": ["generated_at", "summary", "providers", "baselines", "warnings", "methodology"],
+  "properties": {
+    "generated_at": { "type": "string" },
+    "project_root": { "type": "string" },
+    "summary": {
+      "type": "object",
+      "required": ["total_records", "total_providers"],
+      "properties": {
+        "total_records": { "type": "integer" },
+        "total_providers": { "type": "integer" },
+        "baseline_count": { "type": "integer" },
+        "baseline_missing_count": { "type": "integer" },
+        "identity_record_count": { "type": "integer" },
+        "comparison_record_count": { "type": "integer" },
+        "lite_gate_record_count": { "type": "integer" },
+        "identity_verified_count": { "type": "integer" },
+        "confirmed_downgrade_count": { "type": "integer" },
+        "route_unverified_count": { "type": "integer" },
+        "high_risk_count": { "type": "integer" },
+        "coding_allowed_count": { "type": "integer" },
+        "coding_ok_count": { "type": "integer" },
+        "capability_ok_count": { "type": "integer" },
+        "needs_more_data_count": { "type": "integer" },
+        "do_not_use_count": { "type": "integer" },
+        "coding_trial_count": { "type": "integer" },
+        "low_risk_use_count": { "type": "integer" }
+      }
+    },
+    "providers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source_type",
+          "provider_id",
+          "alias_id",
+          "claimed_model",
+          "identity_status",
+          "capability_status",
+          "quality_status",
+          "code_quality_status",
+          "routing_risk",
+          "decision",
+          "latest_record_path",
+          "evidence_flags",
+          "methodology_version",
+          "claim_match_level",
+          "confidence_level",
+          "capability_methodology_version",
+          "capability_score",
+          "capability_tier",
+          "coding_score",
+          "task_reliability",
+          "context_capability",
+          "recommended_use",
+          "baseline_model_id",
+          "baseline_reference_status"
+        ],
+        "properties": {
+          "source_type": {
+            "type": "string",
+            "enum": ["provider_identity_check", "provider_4_8_comparison", "lite_gate", "auto_eval_quick_screen"]
+          },
+          "date": { "type": "string" },
+          "provider_id": { "type": "string" },
+          "alias_id": { "type": "string" },
+          "claimed_model": { "type": "string" },
+          "expected_upstream_model": { "type": "string" },
+          "identity_status": {
+            "type": "string",
+            "enum": [
+              "identity_verified",
+              "confirmed_downgrade",
+              "route_unverified",
+              "identity_unverified",
+              "not_applicable",
+              "unknown"
+            ]
+          },
+          "capability_status": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "quality_screen_only",
+              "quick_screen_v1",
+              "screen_v2",
+              "coding_probe_v1",
+              "single_session_1m_class_capability_verified",
+              "multi_session_1m_class_capability_verified"
+            ]
+          },
+          "quality_status": {
+            "type": "string",
+            "enum": ["PASS", "HOLD", "REJECT", "pass", "hold", "reject", "unknown"]
+          },
+          "code_quality_status": {
+            "type": "string",
+            "enum": ["pass", "hold", "reject", "unknown"]
+          },
+          "routing_risk": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "unknown", "not_assessed"]
+          },
+          "eval_profile": {
+            "type": "string",
+            "enum": ["screen", "coding_only", "formal_relative", "benchmark", "identity", "context_class", "unknown"]
+          },
+          "verdict_scope": { "type": "string" },
+          "coverage_map": { "type": "object" },
+          "score_basis": { "type": "object" },
+          "not_proven": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "screen_score": { "type": ["integer", "null"] },
+          "coding_axis_score": { "type": ["integer", "null"] },
+          "decision_v2": { "type": "string" },
+          "route_key": { "type": "string" },
+          "route_fingerprint": { "type": "string" },
+          "base_url_host_hash": { "type": "string" },
+          "protocol_resolved": { "type": "string" },
+          "route_comparable": { "type": "boolean" },
+          "lite_gate_score": { "type": ["integer", "null"] },
+          "code_quality_score": { "type": ["integer", "null"] },
+          "can_claim_true_4_8": { "type": ["boolean", "null"] },
+          "can_use_for_low_risk": { "type": ["boolean", "null"] },
+          "can_use_for_coding": { "type": ["boolean", "null"] },
+          "can_replace_reference_model": { "type": ["boolean", "null"] },
+          "decision": { "type": "string" },
+          "latest_record_path": { "type": "string" },
+          "notes": { "type": "string" },
+          "evidence_flags": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "task_results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "task_id",
+                "task_status",
+                "score",
+                "max_score",
+                "hard_reject",
+                "evidence_flags",
+                "notes"
+              ],
+              "properties": {
+                "task_id": { "type": "string" },
+                "task_status": { "type": "string" },
+                "score": { "type": ["integer", "null"] },
+                "max_score": { "type": ["integer", "null"] },
+                "hard_reject": { "type": "boolean" },
+                "evidence_flags": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "notes": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              }
+            }
+          },
+          "methodology_version": {
+            "type": "string",
+            "enum": ["provider_verify_v1"]
+          },
+          "claim_match_level": {
+            "type": "string",
+            "enum": ["match_high", "match_medium", "unresolved", "mismatch_high", "not_applicable"]
+          },
+          "confidence_level": {
+            "type": "string",
+            "enum": ["verified", "high", "medium", "low"]
+          },
+          "identity_confidence": {
+            "type": "string",
+            "enum": ["verified", "high", "medium", "low", "unknown", "not_applicable"]
+          },
+          "capability_confidence": {
+            "type": "string",
+            "enum": ["high", "medium", "low", "unknown"]
+          },
+          "route_stability_confidence": {
+            "type": "string",
+            "enum": ["high", "medium", "low", "unknown"]
+          },
+          "capability_methodology_version": {
+            "type": "string",
+            "enum": ["capability_v1"]
+          },
+          "capability_score": { "type": ["integer", "null"] },
+          "capability_tier": {
+            "type": "string",
+            "enum": [
+              "TIER_FLAGSHIP_CANDIDATE",
+              "TIER_STRONG",
+              "TIER_USABLE",
+              "TIER_WEAK",
+              "TIER_UNKNOWN"
+            ]
+          },
+          "coding_score": { "type": ["integer", "null"] },
+          "task_reliability": {
+            "type": "string",
+            "enum": [
+              "single_session_with_retry",
+              "single_session",
+              "single_run",
+              "unknown"
+            ]
+          },
+          "context_capability": {
+            "type": "string",
+            "enum": [
+              "1m_class_observed",
+              "long_context_observed",
+              "standard_context_or_unknown",
+              "not_assessed"
+            ]
+          },
+          "recommended_use": {
+            "type": "string",
+            "enum": [
+              "coding_trial",
+              "low_risk_use",
+              "needs_more_data",
+              "do_not_use",
+              "identity_audit_only"
+            ]
+          },
+          "baseline_model_id": { "type": "string" },
+          "baseline_reference_status": { "type": "string" }
+        }
+      }
+    },
+    "baselines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["model_id", "display_name", "status", "evidence_level"],
+        "properties": {
+          "model_id": { "type": "string" },
+          "display_name": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": [
+              "baseline_missing",
+              "baseline_draft",
+              "baseline_ready",
+              "baseline_deprecated"
+            ]
+          },
+          "evidence_level": { "type": "string" },
+          "source_paths": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "methodology": {
+      "type": "object"
+    }
+  }
+}

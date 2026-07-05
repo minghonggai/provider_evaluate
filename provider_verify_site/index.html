@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Model Capability Report</title>
+    <script>
+      if (window.location.protocol === "file:") {
+        window.location.replace("http://127.0.0.1:8766/");
+      }
+    </script>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232d5f8b'/%3E%3Cpath d='M4 8.8 6.3 11 12 5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles.css?v=20260705-score-rationale" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <p class="eyebrow">model_evaluate</p>
+          <h1 data-i18n="app.title">模型能力评测报告</h1>
+        </div>
+        <nav class="reference-nav" aria-label="reference links">
+          <a href="#quickScreenForm">本地评测</a>
+          <a href="#recordsSection">评测记录</a>
+          <a href="#methodBoundary">方法边界</a>
+        </nav>
+        <div class="topbar-actions">
+          <div id="languageSwitcher" class="language-switcher" aria-label="Language">
+            <button type="button" class="language-option" data-lang="zh">中文</button>
+            <button type="button" class="language-option" data-lang="en">English</button>
+          </div>
+          <div class="boundary-pill">
+            <span class="dot"></span>
+            <span data-i18n="app.boundary">本地能力证据</span>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="intro-panel" aria-labelledby="introTitle">
+          <div class="intro-copy">
+            <p class="intro-label" data-i18n="intro.label">Provider 能力体检</p>
+            <h2 id="introTitle" data-i18n="intro.title">验证 Provider 模型声明</h2>
+            <p data-i18n="intro.body">
+              填入 provider endpoint 和它声称的模型，本机会自动运行固定任务，
+              用本地证据判断实际模型表现是否与声明一致。
+            </p>
+            <div class="intro-actions">
+              <a href="#quickScreenForm" class="primary-link" data-i18n="intro.primaryAction">开始一次本地评测</a>
+              <span data-i18n="intro.secondaryNote">每个 provider / model 组合单独记录，互不合并。</span>
+            </div>
+          </div>
+
+          <div class="result-guide" aria-label="how to read results" data-i18n-aria-label="guide.aria">
+            <h2 data-i18n="guide.title">怎么看结果</h2>
+            <div class="guide-list">
+              <div class="guide-item">
+                <strong data-i18n="guide.score.title">能力分</strong>
+                <span data-i18n="guide.score.body">只代表本次任务表现，不等于官方身份认证。</span>
+              </div>
+              <div class="guide-item">
+                <strong data-i18n="guide.coding.title">代码信号</strong>
+                <span data-i18n="guide.coding.body">判断是否能进入受控 coding 试用。</span>
+              </div>
+              <div class="guide-item">
+                <strong data-i18n="guide.route.title">路由风险</strong>
+                <span data-i18n="guide.route.body">单独标记 provider 是否透明、是否疑似降级。</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="entry-panel" aria-label="new evaluation" data-i18n-aria-label="entry.aria">
+          <div class="panel-header">
+            <div>
+              <h2 id="quickScreenTitle">Quick Screen Run</h2>
+              <p id="quickScreenNote" class="panel-note">Run 5 fixed tasks against a local provider endpoint.</p>
+            </div>
+            <span id="quickScreenStatus" class="status-text">idle</span>
+          </div>
+          <form id="quickScreenForm" class="entry-form">
+            <div class="form-grid">
+              <label>
+                <span data-i18n="form.providerAlias">Provider Alias</span>
+                <input name="provider_alias" required placeholder="opus_4_8syapi" />
+              </label>
+              <label>
+                <span data-i18n="form.claimedModel">宣称模型（可选）</span>
+                <input name="claimed_model" placeholder="Claude Opus 4.8" data-i18n-placeholder="placeholder.claimedModel" />
+              </label>
+              <label>
+                <span data-i18n="form.baseUrl">Base URL</span>
+                <input name="base_url" required placeholder="https://provider.example/v1" />
+              </label>
+              <label>
+                <span data-i18n="form.apiKey">API Key</span>
+                <input name="api_key" required type="password" placeholder="session key" data-i18n-placeholder="placeholder.apiKey" />
+              </label>
+              <label>
+                <span data-i18n="form.modelName">待评测模型</span>
+                <select id="modelNameSelect" name="model_name" required>
+                  <option value="" data-i18n="models.placeholder">先读取模型列表</option>
+                </select>
+              </label>
+            </div>
+            <input type="hidden" name="assessment_plan" value="full_adaptive" />
+            <input type="hidden" name="eval_mode" value="screen_v2" />
+            <input type="hidden" name="provider_protocol" value="auto" />
+
+            <div class="model-source-notice" data-i18n="models.sourceNotice">
+              待评测模型名来自 provider 自己返回的模型列表；请先读取模型列表再选择，不需要手动输入模型名。宣称模型可留空，留空时会默认使用所选模型名记录对照，协议会自动识别。
+            </div>
+
+            <div class="model-actions">
+              <button type="button" id="loadModelsButton" class="secondary-button" data-i18n="button.loadModels">
+                读取供应商模型列表
+              </button>
+              <span id="modelNameStatus" class="model-status" data-i18n="models.idle">先填写 Base URL 和 API Key，再读取 provider 返回的模型列表。</span>
+            </div>
+
+            <label class="single-line">
+              <span data-i18n="form.runResult">Run Result</span>
+              <div id="runResult" class="run-result">No run started.</div>
+            </label>
+
+            <div class="form-actions">
+              <button id="quickScreenSubmit" type="submit">Start Quick Screen</button>
+              <button type="button" id="resetQuickScreenForm" class="secondary-button" data-i18n="button.reset">Reset</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="recordsSection" class="local-overview" aria-label="local record overview" data-i18n-aria-label="summary.aria">
+          <div class="section-heading">
+            <div>
+              <h2 data-i18n="summary.title">本地记录概览</h2>
+              <p data-i18n="summary.body">
+                这些数字只统计你本机保存过的历史评测记录，不代表其他用户，也不是当前这次测试的最终结论。
+              </p>
+            </div>
+          </div>
+          <div class="status-grid" id="summary" aria-label="summary"></div>
+        </section>
+
+        <section class="toolbar" aria-label="filters" data-i18n-aria-label="filters.aria">
+          <label class="search-box">
+            <span data-i18n="filters.search">Search</span>
+            <input id="searchInput" type="search" placeholder="provider / alias / model / capability" data-i18n-placeholder="placeholder.search" />
+          </label>
+          <label>
+            <span data-i18n="filters.capability">Capability</span>
+            <select id="capabilityFilter">
+              <option value="all" data-i18n="filter.all">All</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="filters.risk">Risk</span>
+            <select id="riskFilter">
+              <option value="all" data-i18n="filter.all">All</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="filters.coding">Coding</span>
+            <select id="codingFilter">
+              <option value="all" data-i18n="filter.all">All</option>
+              <option value="true" data-i18n="filter.allowed">Allowed</option>
+              <option value="false" data-i18n="filter.blocked">Blocked</option>
+              <option value="unknown" data-i18n="filter.unknown">Unknown</option>
+            </select>
+          </label>
+        </section>
+
+        <section class="workspace">
+          <div class="table-panel">
+            <div class="panel-header">
+              <h2 data-i18n="records.title">Evidence Records</h2>
+              <span id="resultCount"></span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-i18n="table.alias">Alias</th>
+                    <th data-i18n="table.capability">Capability</th>
+                    <th data-i18n="table.score">Score</th>
+                    <th data-i18n="table.coding">Coding</th>
+                    <th data-i18n="table.context">Context</th>
+                    <th data-i18n="table.use">Use</th>
+                    <th data-i18n="table.identity">Identity</th>
+                    <th data-i18n="table.risk">Risk</th>
+                    <th data-i18n="table.baseline">Baseline</th>
+                    <th data-i18n="table.decision">Decision</th>
+                  </tr>
+                </thead>
+                <tbody id="providerRows"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <aside class="detail-panel" id="detailPanel">
+            <div class="empty-state" data-i18n="detail.empty">Select a provider route.</div>
+          </aside>
+        </section>
+
+        <section id="methodBoundary" class="method-band">
+          <div>
+            <h2 data-i18n="method.title">Method Boundary</h2>
+            <p data-i18n="method.body">
+              能力证据、身份声明、路由透明度和 coding 可用性分开记录。长上下文通过只能证明能力档位，
+              不能单独证明唯一上游身份；身份和路由风险用于限制使用范围，而不是替代能力评分。
+            </p>
+          </div>
+          <div class="method-grid">
+            <span data-i18n="method.raw">raw outputs preserved</span>
+            <span data-i18n="method.capability">capability first</span>
+            <span data-i18n="method.coding">coding signal visible</span>
+            <span data-i18n="method.local">local API caller</span>
+            <span data-i18n="method.noSecrets">no secret storage</span>
+            <span data-i18n="method.routeRisk">route risk explicit</span>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js?v=20260705-score-rationale"></script>
+  </body>
+</html>

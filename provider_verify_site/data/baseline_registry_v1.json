@@ -1,0 +1,37 @@
+{
+  "version": "baseline_library_v1",
+  "created_at": "2026-06-14",
+  "purpose": "Track trusted model baselines needed for provider-route claim comparison.",
+  "baselines": [
+    {
+      "model_id": "claude-opus-4-8",
+      "display_name": "Claude Opus 4.8",
+      "family": "claude",
+      "status": "baseline_missing",
+      "evidence_level": "missing",
+      "required_for": ["opus_4_8_provider_claims", "claim_match_calibration"],
+      "source_paths": [],
+      "notes": "Needs trusted direct or accepted reference-run baseline before provider routes can be compared against Opus 4.8 quality distribution."
+    },
+    {
+      "model_id": "claude-sonnet-4-6",
+      "display_name": "Claude Sonnet 4.6",
+      "family": "claude",
+      "status": "baseline_missing",
+      "evidence_level": "missing",
+      "required_for": ["downgrade_detection", "opus_vs_sonnet_discriminator"],
+      "source_paths": [],
+      "notes": "Needed as a downgrade/control baseline for providers claiming Opus-class models."
+    },
+    {
+      "model_id": "claude-opus-4-6",
+      "display_name": "Claude Opus 4.6",
+      "family": "claude",
+      "status": "baseline_missing",
+      "evidence_level": "missing",
+      "required_for": ["version_delta_detection", "opus_family_comparison"],
+      "source_paths": [],
+      "notes": "Needed to distinguish old Opus-family behavior from claimed Opus 4.8 behavior."
+    }
+  ]
+}

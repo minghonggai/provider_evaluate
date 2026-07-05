@@ -1,0 +1,304 @@
+{
+  "manifest_version": "1.0",
+  "created_at": "2026-06-29",
+  "status": "registry_skeleton",
+  "scope": {
+    "purpose": "local_provider_capability_evaluation",
+    "multimodal_included": false,
+    "identity_separate_from_capability": true,
+    "route_risk_separate_from_capability": true,
+    "raw_output_saved_before_scoring_required": true
+  },
+  "source_policy": {
+    "public_benchmarks": "method_reference_only",
+    "formal_scoring_items": [
+      "private_generated_tasks",
+      "sealed_variants",
+      "sanitized_project_grounded_tasks",
+      "executable_coding_probes",
+      "closed_context_evidence_packs"
+    ],
+    "do_not_use_as_primary_scoring_source": [
+      "copied_public_benchmark_questions",
+      "provider_self_report",
+      "model_name_string_only",
+      "quality_as_identity_proof"
+    ]
+  },
+  "profiles": [
+    {
+      "profile_id": "quick_screen_v1",
+      "status": "implemented_legacy",
+      "score_scope": "screen_score",
+      "may_emit_capability_score": false,
+      "task_count": 5,
+      "source_file": "provider_verify_site/scripts/task_pack_v1.py"
+    },
+    {
+      "profile_id": "coding_probe_v1",
+      "status": "implemented_legacy",
+      "score_scope": "coding_axis_score",
+      "may_emit_capability_score": false,
+      "task_count": 1,
+      "source_file": "provider_verify_site/scripts/task_pack_v1.py"
+    },
+    {
+      "profile_id": "screen_v2",
+      "status": "implemented_initial",
+      "score_scope": "screen_score",
+      "may_emit_capability_score": false,
+      "task_count": 7,
+      "source_file": "provider_verify_site/scripts/task_pack_v1.py"
+    },
+    {
+      "profile_id": "coding_probe_v2",
+      "status": "planned",
+      "score_scope": "coding_axis_score",
+      "may_emit_capability_score": false,
+      "recommended_task_count": "1-3"
+    },
+    {
+      "profile_id": "capability_6d_v1",
+      "status": "planned",
+      "score_scope": "capability_score",
+      "may_emit_capability_score": true,
+      "recommended_task_count": "18-30"
+    },
+    {
+      "profile_id": "agent_tool_use_v1",
+      "status": "planned",
+      "score_scope": "agent_tool_use_score",
+      "may_emit_capability_score": false,
+      "recommended_task_count": "6-10"
+    },
+    {
+      "profile_id": "long_context_v1",
+      "status": "planned",
+      "score_scope": "context_capability",
+      "may_emit_capability_score": false,
+      "recommended_task_count": "3-6"
+    },
+    {
+      "profile_id": "factuality_calibration_v1",
+      "status": "planned",
+      "score_scope": "factuality_score",
+      "may_emit_capability_score": false,
+      "recommended_task_count": "8-15"
+    }
+  ],
+  "axes": [
+    {
+      "axis_id": "math_quantitative_reasoning",
+      "label_zh": "数学/定量推理",
+      "planned_for": [
+        "capability_6d_v1"
+      ],
+      "preferred_scorers": [
+        "exact_match",
+        "numeric_tolerance"
+      ]
+    },
+    {
+      "axis_id": "logic_planning",
+      "label_zh": "逻辑/规划",
+      "planned_for": [
+        "screen_v2",
+        "capability_6d_v1"
+      ],
+      "preferred_scorers": [
+        "rule_checker",
+        "structured_rubric"
+      ]
+    },
+    {
+      "axis_id": "instruction_following",
+      "label_zh": "指令遵循",
+      "planned_for": [
+        "quick_screen_v1",
+        "screen_v2",
+        "capability_6d_v1"
+      ],
+      "preferred_scorers": [
+        "json_schema",
+        "rule_checker"
+      ]
+    },
+    {
+      "axis_id": "data_analysis",
+      "label_zh": "数据分析/结构化处理",
+      "planned_for": [
+        "screen_v2",
+        "capability_6d_v1"
+      ],
+      "preferred_scorers": [
+        "exact_match",
+        "json_schema"
+      ]
+    },
+    {
+      "axis_id": "coding_engineering",
+      "label_zh": "代码/工程执行",
+      "planned_for": [
+        "quick_screen_v1",
+        "coding_probe_v1",
+        "coding_probe_v2",
+        "capability_6d_v1"
+      ],
+      "preferred_scorers": [
+        "executable_tests"
+      ]
+    },
+    {
+      "axis_id": "language_product_communication",
+      "label_zh": "语言理解/产品沟通",
+      "planned_for": [
+        "quick_screen_v1",
+        "screen_v2",
+        "capability_6d_v1"
+      ],
+      "preferred_scorers": [
+        "rule_checker",
+        "calibrated_judge_secondary"
+      ]
+    }
+  ],
+  "gate_axes": [
+    "secret_safety",
+    "live_system_boundary",
+    "evidence_honesty",
+    "contamination_control",
+    "prompt_verifier_contract_health"
+  ],
+  "implemented_tasks": [
+    {
+      "task_id": "boundary_safety",
+      "version": "v1",
+      "profile_id": "quick_screen_v1",
+      "axis": "secret_safety",
+      "score_role": "gate_and_screen_signal",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "boundary_safety",
+      "max_score": 20,
+      "migration_target": "screen_v2"
+    },
+    {
+      "task_id": "instruction_following",
+      "version": "v1",
+      "profile_id": "quick_screen_v1",
+      "axis": "instruction_following",
+      "score_role": "screen_signal",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "instruction_following",
+      "max_score": 20,
+      "migration_target": "screen_v2"
+    },
+    {
+      "task_id": "evidence_honesty",
+      "version": "v1",
+      "profile_id": "quick_screen_v1",
+      "axis": "evidence_honesty",
+      "score_role": "gate_and_screen_signal",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "evidence_honesty",
+      "max_score": 20,
+      "migration_target": "screen_v2"
+    },
+    {
+      "task_id": "coding_fix",
+      "version": "v1",
+      "profile_id": "quick_screen_v1",
+      "axis": "coding_engineering",
+      "score_role": "shallow_coding_screen_signal",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "coding_fix",
+      "max_score": 20,
+      "migration_target": "screen_v2"
+    },
+    {
+      "task_id": "product_communication",
+      "version": "v1",
+      "profile_id": "quick_screen_v1",
+      "axis": "language_product_communication",
+      "score_role": "screen_signal",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "product_communication",
+      "max_score": 20,
+      "migration_target": "screen_v2"
+    },
+    {
+      "task_id": "project_grounded_coding",
+      "version": "v1",
+      "profile_id": "coding_probe_v1",
+      "axis": "coding_engineering",
+      "score_role": "coding_axis_score",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "coding_fix",
+      "max_score": 20,
+      "migration_target": "coding_probe_v2",
+      "requires_sandbox": true
+    }
+  ],
+  "planned_tasks": [
+    {
+      "task_id": "reasoning_planning_synthetic_v1",
+      "profile_id": "screen_v2",
+      "axis": "logic_planning",
+      "source_layer": "private_generated_tasks",
+      "preferred_scorer": "rule_checker",
+      "status": "implemented_initial",
+      "implemented_as": "reasoning_planning"
+    },
+    {
+      "task_id": "data_table_aggregation_v1",
+      "profile_id": "screen_v2",
+      "axis": "data_analysis",
+      "source_layer": "private_generated_tasks",
+      "preferred_scorer": "exact_match",
+      "status": "implemented_initial",
+      "implemented_as": "data_table_analysis"
+    },
+    {
+      "task_id": "closed_context_factuality_v1",
+      "profile_id": "factuality_calibration_v1",
+      "axis": "factuality_calibration",
+      "source_layer": "closed_context_evidence_packs",
+      "preferred_scorer": "exact_match",
+      "status": "planned"
+    },
+    {
+      "task_id": "mini_repo_bugfix_v1",
+      "profile_id": "coding_probe_v2",
+      "axis": "coding_engineering",
+      "source_layer": "executable_coding_probes",
+      "preferred_scorer": "executable_tests",
+      "status": "planned"
+    },
+    {
+      "task_id": "tool_plan_schema_v1",
+      "profile_id": "agent_tool_use_v1",
+      "axis": "agent_tool_use",
+      "source_layer": "private_generated_tasks",
+      "preferred_scorer": "json_schema",
+      "status": "planned"
+    },
+    {
+      "task_id": "multi_needle_context_v1",
+      "profile_id": "long_context_v1",
+      "axis": "long_context",
+      "source_layer": "private_generated_tasks",
+      "preferred_scorer": "exact_match",
+      "status": "planned"
+    }
+  ],
+  "next_actions": [
+    "wire_manifest_into_build_site_data_as_a_read_only_reference",
+    "add_profile_aware_score_scope_fields",
+    "create_private_holdout_directory_after_manifest_schema_stabilizes"
+  ]
+}

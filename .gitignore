@@ -1,0 +1,31 @@
+# Local secrets and credentials
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Python/runtime cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local generated reports and run artifacts
+auto_eval_runs/
+eval_runs/
+lite_gate/runs/
+provider_identity_check/runs/
+provider_verify_site/data/report_index.json
+provider_verify_site/logs/
+logs/
+tmp/
+test-results/
+.playwright-cli/
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+*.log

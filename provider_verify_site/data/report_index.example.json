@@ -1,0 +1,67 @@
+{
+  "generated_at": "example",
+  "project_root": "local",
+  "summary": {
+    "total_records": 0,
+    "total_providers": 0,
+    "baseline_count": 3,
+    "baseline_missing_count": 3,
+    "identity_record_count": 0,
+    "comparison_record_count": 0,
+    "lite_gate_record_count": 0,
+    "auto_eval_record_count": 0,
+    "identity_verified_count": 0,
+    "confirmed_downgrade_count": 0,
+    "route_unverified_count": 0,
+    "high_risk_count": 0,
+    "coding_allowed_count": 0,
+    "coding_ok_count": 0,
+    "capability_ok_count": 0,
+    "needs_more_data_count": 0,
+    "do_not_use_count": 0,
+    "coding_trial_count": 0,
+    "low_risk_use_count": 0
+  },
+  "providers": [],
+  "baselines": [
+    {
+      "model_id": "claude-opus-4-8",
+      "display_name": "Claude Opus 4.8",
+      "family": "claude",
+      "status": "baseline_missing",
+      "evidence_level": "missing",
+      "required_for": ["opus_4_8_provider_claims", "claim_match_calibration"],
+      "source_paths": [],
+      "notes": "Needs trusted direct or accepted reference-run baseline before provider routes can be compared against Opus 4.8 quality distribution."
+    },
+    {
+      "model_id": "claude-sonnet-4-6",
+      "display_name": "Claude Sonnet 4.6",
+      "family": "claude",
+      "status": "baseline_missing",
+      "evidence_level": "missing",
+      "required_for": ["downgrade_detection", "opus_vs_sonnet_discriminator"],
+      "source_paths": [],
+      "notes": "Needed as a downgrade/control baseline for providers claiming Opus-class models."
+    },
+    {
+      "model_id": "claude-opus-4-6",
+      "display_name": "Claude Opus 4.6",
+      "family": "claude",
+      "status": "baseline_missing",
+      "evidence_level": "missing",
+      "required_for": ["version_delta_detection", "opus_family_comparison"],
+      "source_paths": [],
+      "notes": "Needed to distinguish old Opus-family behavior from claimed Opus 4.8 behavior."
+    }
+  ],
+  "warnings": [],
+  "methodology": {
+    "capability_first_evaluation": true,
+    "capability_is_not_identity": true,
+    "raw_outputs_preserved_in_source_files": false,
+    "live_api_calls_from_site": true,
+    "secret_storage_in_site": false,
+    "example_dataset": true
+  }
+}
