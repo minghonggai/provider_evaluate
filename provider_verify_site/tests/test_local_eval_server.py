@@ -75,6 +75,12 @@ class LocalEvalServerTests(unittest.TestCase):
         payload["eval_mode"] = "screen_v2"
         return payload
 
+    def sample_holdout_screen_payload(self):
+        payload = self.sample_quick_screen_payload()
+        payload["provider_alias"] = "opus_4_8syapi_holdout"
+        payload["eval_mode"] = "holdout_screen_v1"
+        return payload
+
     def test_safe_slug_keeps_ascii_and_collapses_separators(self):
         self.assertEqual(safe_slug("Opus 4.8 SYAPI"), "opus_4_8_syapi")
         self.assertEqual(safe_slug("provider/v2 (test)"), "provider_v2_test")
@@ -113,6 +119,11 @@ class LocalEvalServerTests(unittest.TestCase):
         normalized = validate_quick_screen_payload(self.sample_screen_v2_payload())
 
         self.assertEqual(normalized["eval_mode"], "screen_v2")
+
+    def test_validate_quick_screen_payload_accepts_holdout_screen_mode(self):
+        normalized = validate_quick_screen_payload(self.sample_holdout_screen_payload())
+
+        self.assertEqual(normalized["eval_mode"], "holdout_screen_v1")
 
     def test_validate_quick_screen_payload_defaults_claim_to_selected_model(self):
         payload = self.sample_quick_screen_payload()
@@ -675,6 +686,119 @@ source_prompt_file: {prompt_file}
         self.assertEqual(run_report["decision"], "CONTINUE_TRIAL")
         self.assertTrue(reasoning_score_exists)
         self.assertTrue(data_score_exists)
+
+    def test_create_holdout_screen_run_marks_holdout_scope(self):
+        responses = iter(
+            [
+                {
+                    "response_text": (
+                        "CONCLUSION: keep evaluation local and bounded\n"
+                        "FORBIDDEN_ACTIONS:\n- do not request provider secrets or production credentials\n"
+                        "SAFE_ALTERNATIVE: use saved local run evidence and scoped reports\n"
+                        "RISK: capability evidence still cannot prove official identity\n"
+                    )
+                },
+                {
+                    "response_text": (
+                        "CONCLUSION: holdout payload is ready\n"
+                        "REQUIRED_FIELDS:\n- provider_alias\n- eval_mode\n- verdict_scope\n"
+                        "NEXT_STEP:\n- run holdout_screen_v1 as a separate scoped screen\n"
+                    )
+                },
+                {
+                    "response_text": (
+                        "KNOWN:\n- only this prompt and the provider response are available\n"
+                        "NOT_KNOWN:\n- local files, hidden traces, and upstream identity are not known\n"
+                        "SUGGESTED_NEXT_STEPS:\n- preserve raw output and compare scoped holdout evidence\n"
+                    )
+                },
+                {
+                    "response_text": (
+                        "ROOT_CAUSE:\nClose-call results need independent scoped evidence.\n"
+                        "DECISION_ORDER:\n"
+                        "1. Preserve raw run evidence.\n"
+                        "2. Label verdict scope before showing any score.\n"
+                        "3. Re-run coding after the prompt/verifier contract fix.\n"
+                        "BLOCKERS:\n- provider identity and route stability remain separate.\n"
+                        "RISK_CONTROL:\n- do not claim provider identity from capability evidence.\n"
+                    )
+                },
+                {
+                    "response_text": (
+                        "TOTAL_RUNS: 6\n"
+                        "PASS_RATE: 50%\n"
+                        "BEST_PROVIDER: beta\n"
+                        "RISK_FLAG:\n- beta has one timeout and needs route stability monitoring.\n"
+                    )
+                },
+                {
+                    "response_text": (
+                        "```python\n"
+                        "def summarize_provider_success(runs):\n"
+                        "    successful = [item for item in runs if item.get('status') == 'PASS']\n"
+                        "    per_provider = {}\n"
+                        "    for item in successful:\n"
+                        "        provider = item.get('provider')\n"
+                        "        per_provider[provider] = per_provider.get(provider, 0) + 1\n"
+                        "    return {\n"
+                        "        'total': len(runs),\n"
+                        "        'successful': len(successful),\n"
+                        "        'perProvider': per_provider,\n"
+                        "    }\n"
+                        "```\n"
+                    )
+                },
+                {
+                    "response_text": (
+                        "BOTTOM_LINE:\nHoldout remains screening evidence, not official identity proof.\n"
+                        "OPTIONS:\n1. Stop if the holdout is weak\n2. Continue to coding probe if still usable\n"
+                        "RECOMMENDATION:\nContinue only as controlled local evaluation evidence.\n"
+                        "NEXT_STEP:\nRun coding_probe_v1 if the holdout decision remains usable.\n"
+                    )
+                },
+            ]
+        )
+
+        def fake_runner(**_kwargs):
+            response = next(responses)
+            return {
+                "status": "ok",
+                "latency_ms": 12,
+                "finish_reason": "stop",
+                "response_text": response["response_text"],
+                "usage": {"total_tokens": 42},
+                "raw_json": {"ok": True},
+            }
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            now = datetime(2026, 7, 5, 9, 5, tzinfo=timezone.utc)
+
+            result = create_quick_screen_run(
+                root,
+                self.sample_holdout_screen_payload(),
+                now=now,
+                runner=fake_runner,
+            )
+
+            run_dir = (root / result["report_path"]).parent
+            run_report = json.loads((run_dir / "run_report.json").read_text(encoding="utf-8"))
+            read_back = read_quick_screen_run(root, result["run_id"])
+
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(run_report["eval_mode"], "holdout_screen_v1")
+        self.assertEqual(run_report["eval_profile"], "screen")
+        self.assertEqual(run_report["verdict_scope"], "holdout_screen_triage")
+        self.assertEqual(run_report["total_tasks"], 7)
+        self.assertEqual(run_report["score_basis"]["task_count"], 7)
+        self.assertIs(run_report["score_basis"]["holdout_checked"], True)
+        self.assertEqual(run_report["coverage_map"]["reasoning_planning"], "shallow")
+        self.assertEqual(run_report["coverage_map"]["data_analysis"], "shallow")
+        self.assertIsNone(run_report["capability_score"])
+        self.assertEqual(run_report["screen_score"], 100)
+        self.assertEqual(read_back["eval_mode"], "holdout_screen_v1")
+        self.assertEqual(read_back["verdict_scope"], "holdout_screen_triage")
+        self.assertIs(read_back["hard_reject_triggered"], False)
 
     def test_cli_help_runs_from_script_path(self):
         script = Path("provider_verify_site/scripts/local_eval_server.py")

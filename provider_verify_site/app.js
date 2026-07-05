@@ -74,6 +74,10 @@ const UI_COPY = {
     "mode.screen_v2.title": "能力筛查 v2 运行",
     "mode.screen_v2.note": "自动运行 7 个文本/代码任务，补充推理规划和数据分析。",
     "mode.screen_v2.button": "开始能力筛查 v2",
+    "mode.holdout_screen_v1.label": "临界复测",
+    "mode.holdout_screen_v1.title": "临界复测运行",
+    "mode.holdout_screen_v1.note": "只在初筛接近阈值时运行 7 个独立 holdout 任务。",
+    "mode.holdout_screen_v1.button": "开始临界复测",
     "mode.coding_probe_v1.label": "代码能力探针",
     "mode.coding_probe_v1.title": "代码能力探针运行",
     "mode.coding_probe_v1.note": "运行 1 个带本地 verifier 的项目级可执行 coding 任务。",
@@ -84,7 +88,7 @@ const UI_COPY = {
     "plan.quick.button": "开始快速评估",
     "plan.fullAdaptive.label": "完整评估",
     "plan.fullAdaptive.title": "Provider 模型完整评估",
-    "plan.fullAdaptive.note": "一次完成能力筛查；如果结果值得继续，会自动补代码探针。预计消耗取决于 provider 定价，通常是数万 tokens 级别。",
+    "plan.fullAdaptive.note": "一次完成能力筛查；临界结果会自动追加 holdout 复测，仍可用时再补代码探针。预计消耗取决于 provider 定价。",
     "plan.fullAdaptive.button": "开始完整评估",
     "button.loadModels": "读取供应商模型列表",
     "button.reset": "重置",
@@ -99,17 +103,20 @@ const UI_COPY = {
     "run.failed": "运行失败: {message}",
     "run.status": "运行 {runId}: {status} | 决策={decision} | 证据分={score} | Coding={coding}",
     "run.statusUnavailable": "运行状态不可用: {message}",
-    "run.adaptiveStarting": "正在开始完整定档：先跑能力筛查，必要时自动补代码探针。",
+    "run.adaptiveStarting": "正在开始完整定档：先跑能力筛查，临界时自动复测，必要时补代码探针。",
     "run.adaptiveStageScreen": "能力筛查完成：{runId} | 决策={decision} | 分数={score}",
+    "run.adaptiveStageHoldout": "临界复测完成：{runId} | 决策={decision} | 分数={score}",
     "run.adaptiveStageCoding": "代码探针完成：{runId} | 决策={decision} | 分数={score}",
-    "run.adaptiveCodingPending": "能力筛查达标，正在自动补代码探针...",
+    "run.adaptiveHoldoutPending": "初筛接近阈值，正在自动运行 holdout 临界复测...",
+    "run.adaptiveCodingPending": "当前筛查证据仍可用，正在自动补代码探针...",
     "run.adaptiveSkipCoding": "能力筛查未达到补跑条件，已停止；决策={decision}。",
     "run.adaptiveComplete": "完整定档完成。",
     "run.progress.title": "本次评测流程",
-    "run.progress.cost": "预计：能力筛查约 7 次模型请求；达标后自动追加 1 次代码探针。实际费用按 provider token 定价。",
+    "run.progress.cost": "预计：能力筛查约 7 次模型请求；临界时追加 7 次 holdout；仍可用时追加 1 次代码探针。实际费用按 provider token 定价。",
     "run.progress.models": "读取模型列表并选择待测模型",
     "run.progress.screen": "运行 7 项能力筛查",
     "run.progress.score": "本地规则评分与扣分归因",
+    "run.progress.holdout": "临界 holdout 复测",
     "run.progress.coding": "代码探针（达标后自动补跑）",
     "run.progress.save": "保存报告并刷新记录",
     "run.step.done": "完成",
@@ -299,6 +306,10 @@ const UI_COPY = {
     "mode.screen_v2.title": "Capability Screen Run",
     "mode.screen_v2.note": "Run 7 text/code tasks, adding reasoning/planning and data analysis.",
     "mode.screen_v2.button": "Start Capability Screen",
+    "mode.holdout_screen_v1.label": "Close-Call Holdout",
+    "mode.holdout_screen_v1.title": "Close-Call Holdout Run",
+    "mode.holdout_screen_v1.note": "Run 7 independent holdout tasks only when the first screen is near the threshold.",
+    "mode.holdout_screen_v1.button": "Start Close-Call Holdout",
     "mode.coding_probe_v1.label": "Coding Probe",
     "mode.coding_probe_v1.title": "Coding Probe Run",
     "mode.coding_probe_v1.note": "Run 1 executable project-grounded coding task with a local verifier.",
@@ -309,7 +320,7 @@ const UI_COPY = {
     "plan.quick.button": "Start Quick Assessment",
     "plan.fullAdaptive.label": "Complete Assessment",
     "plan.fullAdaptive.title": "Provider Model Complete Assessment",
-    "plan.fullAdaptive.note": "Runs the capability screen once, then automatically adds the coding probe when the evidence is worth continuing. Estimated usage depends on provider pricing and is usually in the tens of thousands of tokens.",
+    "plan.fullAdaptive.note": "Runs the capability screen once, adds a holdout rerun for close calls, then adds the coding probe when the holdout remains usable. Estimated usage depends on provider pricing.",
     "plan.fullAdaptive.button": "Start full assessment",
     "button.loadModels": "Load provider model list",
     "button.reset": "Reset",
@@ -324,17 +335,20 @@ const UI_COPY = {
     "run.failed": "Run failed: {message}",
     "run.status": "Run {runId}: {status} | decision={decision} | evidence_score={score} | coding={coding}",
     "run.statusUnavailable": "Run status unavailable: {message}",
-    "run.adaptiveStarting": "Starting full assessment: capability screen first, coding probe if useful.",
+    "run.adaptiveStarting": "Starting full assessment: capability screen first, close-call holdout when needed, coding probe if useful.",
     "run.adaptiveStageScreen": "Capability screen complete: {runId} | decision={decision} | score={score}",
+    "run.adaptiveStageHoldout": "Close-call holdout complete: {runId} | decision={decision} | score={score}",
     "run.adaptiveStageCoding": "Coding probe complete: {runId} | decision={decision} | score={score}",
-    "run.adaptiveCodingPending": "Capability screen passed the threshold. Running coding probe automatically...",
+    "run.adaptiveHoldoutPending": "The first screen is near the threshold. Running the holdout automatically...",
+    "run.adaptiveCodingPending": "Current screening evidence remains usable. Running coding probe automatically...",
     "run.adaptiveSkipCoding": "Capability screen did not meet the coding-probe condition. Stopped here; decision={decision}.",
     "run.adaptiveComplete": "Full assessment complete.",
     "run.progress.title": "Current evaluation flow",
-    "run.progress.cost": "Estimate: about 7 model requests for the capability screen; 1 extra coding probe is added only when the screen is worth continuing. Actual cost follows provider token pricing.",
+    "run.progress.cost": "Estimate: about 7 model requests for the capability screen; 7 more for close-call holdout; 1 extra coding probe when still usable. Actual cost follows provider token pricing.",
     "run.progress.models": "Load model list and select model",
     "run.progress.screen": "Run 7 capability-screen tasks",
     "run.progress.score": "Apply local scoring and failure attribution",
+    "run.progress.holdout": "Close-call holdout rerun",
     "run.progress.coding": "Coding probe (auto-added after passing screen)",
     "run.progress.save": "Save report and refresh records",
     "run.step.done": "done",
@@ -473,6 +487,7 @@ const UI_COPY = {
 const EVAL_MODE_LABELS = {
   quick_screen_v1: "mode.quick_screen_v1.label",
   screen_v2: "mode.screen_v2.label",
+  holdout_screen_v1: "mode.holdout_screen_v1.label",
   coding_probe_v1: "mode.coding_probe_v1.label",
 };
 const EVAL_MODE_COPY = {
@@ -485,6 +500,11 @@ const EVAL_MODE_COPY = {
     title: "mode.screen_v2.title",
     note: "mode.screen_v2.note",
     button: "mode.screen_v2.button",
+  },
+  holdout_screen_v1: {
+    title: "mode.holdout_screen_v1.title",
+    note: "mode.holdout_screen_v1.note",
+    button: "mode.holdout_screen_v1.button",
   },
   coding_probe_v1: {
     title: "mode.coding_probe_v1.title",
@@ -543,6 +563,7 @@ const VALUE_LABELS = {
     capability: "完整能力",
     screen: "筛查",
     screen_triage: "筛查判定",
+    holdout_screen_triage: "临界复测判定",
     coding_only: "代码轴",
     formal_relative: "正式对比",
     benchmark: "基准",
@@ -550,6 +571,7 @@ const VALUE_LABELS = {
     context_class: "上下文档位",
     quick_screen_v1: "快速筛选",
     screen_v2: "能力筛查 v2",
+    holdout_screen_v1: "临界复测",
     coding_probe_v1: "代码能力探针",
     quality_screen_only: "仅质量筛选",
     single_session_1m_class_capability_verified: "单会话 1M 能力已观察",
@@ -644,6 +666,7 @@ const VALUE_LABELS = {
     capability: "Capability",
     screen: "Screen",
     screen_triage: "Screen triage",
+    holdout_screen_triage: "Close-call holdout triage",
     coding_only: "Coding-only",
     formal_relative: "Formal relative",
     benchmark: "Benchmark",
@@ -651,6 +674,7 @@ const VALUE_LABELS = {
     context_class: "Context class",
     quick_screen_v1: "Quick Screen",
     screen_v2: "Capability Screen",
+    holdout_screen_v1: "Close-Call Holdout",
     coding_probe_v1: "Coding Probe",
     quality_screen_only: "Quality screen only",
     single_session_1m_class_capability_verified: "Single-session 1M capability observed",
@@ -1465,14 +1489,19 @@ function runStepHtml(labelKey, status, detail = "") {
 function renderRunProgress({
   screenState = "pending",
   scoreState = "pending",
+  holdoutState = "pending",
   codingState = "pending",
   saveState = "pending",
   screenResult = null,
+  holdoutResult = null,
   codingResult = null,
   footer = "",
 } = {}) {
   const screenDetail = screenResult
     ? `${decisionForRunResult(screenResult)} / ${scoreForRunResult(screenResult)}`
+    : "";
+  const holdoutDetail = holdoutResult
+    ? `${decisionForRunResult(holdoutResult)} / ${scoreForRunResult(holdoutResult)}`
     : "";
   const codingDetail = codingResult
     ? `${decisionForRunResult(codingResult)} / ${scoreForRunResult(codingResult)}`
@@ -1487,6 +1516,7 @@ function renderRunProgress({
         ${runStepHtml("run.progress.models", "done")}
         ${runStepHtml("run.progress.screen", screenState, screenDetail)}
         ${runStepHtml("run.progress.score", scoreState)}
+        ${runStepHtml("run.progress.holdout", holdoutState, holdoutDetail)}
         ${runStepHtml("run.progress.coding", codingState, codingDetail)}
         ${runStepHtml("run.progress.save", saveState)}
       </div>
@@ -1515,6 +1545,22 @@ async function runSingleEvalMode(payload, evalMode, updateRunResult = true) {
   return (await loadRunResult(body.run_id, updateRunResult)) || body;
 }
 
+function shouldRunHoldoutScreen(screenResult) {
+  if (!screenResult) return false;
+  const status = String(screenResult.run_status || "").toLowerCase();
+  if (status && status !== "completed") return false;
+  if (screenResult.hard_reject_triggered === true) return false;
+  const decision = String(screenResult.decision_v2 || screenResult.decision || "").toUpperCase();
+  if (["NOT_RECOMMENDED", "REJECTED", "INCONCLUSIVE", "RERUN_REQUIRED"].includes(decision)) {
+    return false;
+  }
+  if (decision === "LIMITED_USE") {
+    return true;
+  }
+  const score = Number(screenResult.screen_score ?? screenResult.capability_score);
+  return Number.isFinite(score) && score >= 65 && score <= 84;
+}
+
 function shouldRunCodingProbe(screenResult) {
   if (!screenResult) return false;
   const status = String(screenResult.run_status || "").toLowerCase();
@@ -1541,7 +1587,13 @@ async function runAdaptiveAssessment(payload) {
 
   const stageLines = [];
   setRunResult(
-    renderRunProgress({ screenState: "running", scoreState: "pending", codingState: "pending", saveState: "pending" }),
+    renderRunProgress({
+      screenState: "running",
+      scoreState: "pending",
+      holdoutState: "pending",
+      codingState: "pending",
+      saveState: "pending",
+    }),
     "neutral",
     true,
   );
@@ -1554,14 +1606,44 @@ async function runAdaptiveAssessment(payload) {
     }),
   );
 
-  if (shouldRunCodingProbe(screenResult)) {
+  let holdoutResult = null;
+  let codingBasisResult = screenResult;
+  if (shouldRunHoldoutScreen(screenResult)) {
     setRunResult(
       renderRunProgress({
         screenState: "done",
         scoreState: "done",
+        holdoutState: "running",
+        codingState: "pending",
+        saveState: "pending",
+        screenResult,
+        footer: t("run.adaptiveHoldoutPending"),
+      }),
+      "neutral",
+      true,
+    );
+    holdoutResult = await runSingleEvalMode(payload, "holdout_screen_v1", false);
+    codingBasisResult = holdoutResult;
+    stageLines.push(
+      formatCopy("run.adaptiveStageHoldout", {
+        runId: holdoutResult?.run_id || state.latestRun || "unknown",
+        decision: decisionForRunResult(holdoutResult),
+        score: scoreForRunResult(holdoutResult),
+      }),
+    );
+  }
+
+  const holdoutState = holdoutResult ? "done" : "skipped";
+  if (shouldRunCodingProbe(codingBasisResult)) {
+    setRunResult(
+      renderRunProgress({
+        screenState: "done",
+        scoreState: "done",
+        holdoutState,
         codingState: "running",
         saveState: "pending",
         screenResult,
+        holdoutResult,
         footer: t("run.adaptiveCodingPending"),
       }),
       "neutral",
@@ -1579,9 +1661,11 @@ async function runAdaptiveAssessment(payload) {
       renderRunProgress({
         screenState: "done",
         scoreState: "done",
+        holdoutState,
         codingState: "done",
         saveState: "done",
         screenResult,
+        holdoutResult,
         codingResult,
         footer: t("run.adaptiveComplete"),
       }),
@@ -1589,15 +1673,17 @@ async function runAdaptiveAssessment(payload) {
       true,
     );
   } else {
-    stageLines.push(formatCopy("run.adaptiveSkipCoding", { decision: decisionForRunResult(screenResult) }));
+    stageLines.push(formatCopy("run.adaptiveSkipCoding", { decision: decisionForRunResult(codingBasisResult) }));
     setRunResult(
       renderRunProgress({
         screenState: "done",
         scoreState: "done",
+        holdoutState,
         codingState: "skipped",
         saveState: "done",
         screenResult,
-        footer: formatCopy("run.adaptiveSkipCoding", { decision: decisionForRunResult(screenResult) }),
+        holdoutResult,
+        footer: formatCopy("run.adaptiveSkipCoding", { decision: decisionForRunResult(codingBasisResult) }),
       }),
       "success",
       true,

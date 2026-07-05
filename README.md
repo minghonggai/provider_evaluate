@@ -34,9 +34,41 @@ http://127.0.0.1:8765/
 1. 填写 provider alias、claimed model、base URL、session-only API key、protocol。
 2. 点击读取模型列表。
 3. 从返回的模型下拉框选择实际要测的模型。
-4. 选择完整自适应评测。
-5. 开始评测。
-6. 把结果理解为本地能力和 coding 证据，不把它当作官方上游身份认证。
+4. 保持默认的完整评估入口，点击开始评测。
+5. 系统会先跑 `screen_v2` 能力筛查；如果结果接近阈值，会自动追加 `holdout_screen_v1` 临界复测；如果筛查/复测仍然可用，再自动追加 `coding_probe_v1`。
+6. 把结果理解为本地能力、临界稳定性和 coding 证据，不把它当作官方上游身份认证。
+
+## 完整评估触发规则
+
+默认完整评估按这个顺序运行：
+
+```text
+screen_v2
+-> close-call only: holdout_screen_v1
+-> usable only: coding_probe_v1
+```
+
+`holdout_screen_v1` 只在下面情况自动触发：
+
+- `screen_score` 在 65-84 之间；
+- 或 `decision_v2 = LIMITED_USE`；
+- 并且初筛没有 hard reject、provider 请求失败、`INCONCLUSIVE` 或 `RERUN_REQUIRED`。
+
+每个阶段都会生成独立目录：
+
+```text
+auto_eval_runs/YYYY-MM-DD/<run_id>/
+```
+
+如果同一秒内连续运行同一个 provider alias，系统会自动追加 `-2`、`-3` 后缀，避免覆盖前一个阶段的原始输出。
+
+报告里的 `holdout_screen_v1` 仍然是 scoped screen evidence：
+
+- 可以产生 `screen_score`；
+- 不产生正式 `capability_score`；
+- `score_basis.holdout_checked = true`；
+- `verdict_scope = holdout_screen_triage`；
+- 仍然不能证明 provider 的官方上游模型身份。
 
 ## 验证命令
 

@@ -88,6 +88,7 @@
               "quality_screen_only",
               "quick_screen_v1",
               "screen_v2",
+              "holdout_screen_v1",
               "coding_probe_v1",
               "single_session_1m_class_capability_verified",
               "multi_session_1m_class_capability_verified"

@@ -43,6 +43,7 @@ from provider_verify_site.scripts.scorers_v1 import (
 )
 from provider_verify_site.scripts.task_pack_v1 import (
     get_coding_probe_task_pack,
+    get_holdout_screen_task_pack,
     get_quick_screen_task_pack,
     get_screen_v2_task_pack,
 )
@@ -68,8 +69,14 @@ DEFAULT_ALLOWED_ORIGINS = {
 QUICK_SCREEN_EVAL_MODE = "quick_screen_v1"
 CODING_PROBE_EVAL_MODE = "coding_probe_v1"
 SCREEN_V2_EVAL_MODE = "screen_v2"
-EVAL_MODES = {QUICK_SCREEN_EVAL_MODE, CODING_PROBE_EVAL_MODE, SCREEN_V2_EVAL_MODE}
-SCREEN_EVAL_MODES = {QUICK_SCREEN_EVAL_MODE, SCREEN_V2_EVAL_MODE}
+HOLDOUT_SCREEN_EVAL_MODE = "holdout_screen_v1"
+EVAL_MODES = {
+    QUICK_SCREEN_EVAL_MODE,
+    CODING_PROBE_EVAL_MODE,
+    SCREEN_V2_EVAL_MODE,
+    HOLDOUT_SCREEN_EVAL_MODE,
+}
+SCREEN_EVAL_MODES = {QUICK_SCREEN_EVAL_MODE, SCREEN_V2_EVAL_MODE, HOLDOUT_SCREEN_EVAL_MODE}
 PROVIDER_PROTOCOLS = {AUTO_PROTOCOL, "openai_chat", "anthropic_messages"}
 
 SCORER_DISPATCH = {
@@ -396,6 +403,18 @@ def _quick_screen_run_dir(root, run_id):
     return matches[0] if matches else None
 
 
+def _ensure_unique_run_workspace(root, run_id, now):
+    root = Path(root)
+    date_dir = now.astimezone().strftime("%Y-%m-%d")
+    runs_root = root / "auto_eval_runs" / date_dir
+    candidate = run_id
+    counter = 2
+    while (runs_root / candidate).exists():
+        candidate = f"{run_id}-{counter}"
+        counter += 1
+    return candidate, ensure_run_workspace(root, candidate, now)
+
+
 def _score_task(task, response_text):
     scorer = SCORER_DISPATCH.get(task["scorer"])
     if scorer is None:
@@ -445,7 +464,7 @@ def _coverage_map_for_eval_mode(eval_mode):
                 "product_communication": "shallow",
             }
         )
-        if eval_mode == SCREEN_V2_EVAL_MODE:
+        if eval_mode in {SCREEN_V2_EVAL_MODE, HOLDOUT_SCREEN_EVAL_MODE}:
             coverage["reasoning_planning"] = "shallow"
             coverage["data_analysis"] = "shallow"
     elif eval_mode == CODING_PROBE_EVAL_MODE:
@@ -500,7 +519,7 @@ def _profile_scope_fields(eval_mode, summary, task_count):
         "run_count": 1,
         "task_count": task_count,
         "perturbed_checked": False,
-        "holdout_checked": False,
+        "holdout_checked": eval_mode == HOLDOUT_SCREEN_EVAL_MODE,
         "baseline_present": False,
     }
     common = {
@@ -514,7 +533,11 @@ def _profile_scope_fields(eval_mode, summary, task_count):
         return {
             **common,
             "eval_profile": "screen",
-            "verdict_scope": "screen_triage",
+            "verdict_scope": (
+                "holdout_screen_triage"
+                if eval_mode == HOLDOUT_SCREEN_EVAL_MODE
+                else "screen_triage"
+            ),
             "screen_score": summary["capability_score"],
             "coding_axis_score": summary["coding_score"],
             "capability_score": None,
@@ -586,6 +609,8 @@ def _run_quick_screen_tasks(root, run_dir, run_id, normalized, now=None, runner=
         task_pack = get_coding_probe_task_pack()
     elif normalized["eval_mode"] == SCREEN_V2_EVAL_MODE:
         task_pack = get_screen_v2_task_pack()
+    elif normalized["eval_mode"] == HOLDOUT_SCREEN_EVAL_MODE:
+        task_pack = get_holdout_screen_task_pack()
     else:
         task_pack = get_quick_screen_task_pack()
     protocol_resolved = resolve_provider_protocol(
@@ -742,7 +767,7 @@ def create_quick_screen_run(root, payload, now=None, runner=None):
     normalized = validate_quick_screen_payload(payload)
     now = now or datetime.now().astimezone()
     run_id = unique_run_id(normalized["provider_alias"], now)
-    run_dir = ensure_run_workspace(root, run_id, now)
+    run_id, run_dir = _ensure_unique_run_workspace(root, run_id, now)
 
     run_report = _run_quick_screen_tasks(
         root=root,
@@ -790,6 +815,7 @@ def read_quick_screen_run(root, run_id):
             "eval_mode": report.get("eval_mode"),
             "eval_profile": report.get("eval_profile"),
             "verdict_scope": report.get("verdict_scope"),
+            "hard_reject_triggered": report.get("hard_reject_triggered", False),
             "report_path": run_report_path.relative_to(root).as_posix(),
         }
     if manifest_path.exists():

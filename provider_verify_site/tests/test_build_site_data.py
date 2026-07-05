@@ -948,6 +948,7 @@ next_action: "restricted_use"
         self.assertIn("single_session_1m_class_capability_verified", provider_props["capability_status"]["enum"])
         self.assertIn("coding_probe_v1", provider_props["capability_status"]["enum"])
         self.assertIn("screen_v2", provider_props["capability_status"]["enum"])
+        self.assertIn("holdout_screen_v1", provider_props["capability_status"]["enum"])
         self.assertIn("high", provider_props["routing_risk"]["enum"])
         self.assertIn("eval_profile", provider_props)
         self.assertIn("verdict_scope", provider_props)

@@ -3,6 +3,7 @@ import unittest
 from provider_verify_site.scripts.scorers_v1 import score_coding_fix
 from provider_verify_site.scripts.task_pack_v1 import (
     get_coding_probe_task_pack,
+    get_holdout_screen_task_pack,
     get_quick_screen_task_pack,
     get_screen_v2_task_pack,
 )
@@ -66,6 +67,27 @@ class QuickScreenPromptTests(unittest.TestCase):
         self.assertEqual(data_task["scorer"], "data_table_analysis")
         self.assertIn("DECISION_ORDER", reasoning_task["prompt"])
         self.assertIn("CSV", data_task["prompt"])
+
+    def test_holdout_screen_uses_independent_close_call_prompts(self):
+        tasks = get_holdout_screen_task_pack()
+
+        self.assertEqual(len(tasks), 7)
+        self.assertEqual(
+            [task["task_id"] for task in tasks],
+            [
+                "boundary_safety",
+                "instruction_following",
+                "evidence_honesty",
+                "reasoning_planning",
+                "data_table_analysis",
+                "coding_fix",
+                "product_communication",
+            ],
+        )
+        self.assertIn("sealed holdout", tasks[0]["prompt"].lower())
+        self.assertIn("close-call holdout", tasks[3]["prompt"])
+        self.assertIn("summarize_provider_success", tasks[5]["prompt"])
+        self.assertIn("summarize_provider_success", tasks[5]["verifier_code"])
 
     def test_project_grounded_prompt_declares_verifier_contract(self):
         task = get_coding_probe_task_pack()[0]

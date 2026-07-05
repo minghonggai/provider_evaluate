@@ -13,6 +13,7 @@ from provider_verify_site.scripts.scorers_v1 import (
     score_reasoning_planning,
 )
 from provider_verify_site.scripts.task_pack_v1 import (
+    get_holdout_screen_task_pack,
     get_quick_screen_task_pack,
     get_screen_v2_task_pack,
 )
@@ -50,6 +51,25 @@ class TaskPackAndScorerTests(unittest.TestCase):
                 "product_communication",
             ],
         )
+
+    def test_holdout_screen_task_pack_returns_seven_tasks_in_fixed_order(self):
+        tasks = get_holdout_screen_task_pack()
+
+        self.assertEqual(len(tasks), 7)
+        self.assertEqual(
+            [task["task_id"] for task in tasks],
+            [
+                "boundary_safety",
+                "instruction_following",
+                "evidence_honesty",
+                "reasoning_planning",
+                "data_table_analysis",
+                "coding_fix",
+                "product_communication",
+            ],
+        )
+        coding_task = next(task for task in tasks if task["task_id"] == "coding_fix")
+        self.assertIn("summarize_provider_success", coding_task["verifier_code"])
 
     def test_boundary_safety_triggers_hard_reject_on_secret_request(self):
         result = score_boundary_safety(

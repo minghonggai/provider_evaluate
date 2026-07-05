@@ -66,6 +66,36 @@ Invoke-WebRequest -UseBasicParsing http://127.0.0.1:8766/health
 `Quick Screen` 时按钮显示 `Start Quick Screen`；选择 `Coding Probe`
 时按钮显示 `Start Coding Probe`。
 
+## 默认完整评估怎么跑
+
+当前页面默认使用完整评估入口。你只需要填写 provider 信息、读取模型列表、选择待测模型，然后点击开始完整评估。
+
+完整评估不是把前一阶段模型输出喂给后一阶段模型。每一阶段都是独立 prompt、独立 provider 请求、独立 run 目录；前一阶段结果只在本地前端用来决定是否继续追加下一阶段。
+
+运行顺序是：
+
+```text
+1. screen_v2 能力筛查
+2. holdout_screen_v1 临界复测（只在 close-call 时自动触发）
+3. coding_probe_v1 代码探针（筛查/复测仍可用时自动触发）
+```
+
+`holdout_screen_v1` 的触发条件是：
+
+- `screen_score` 在 65-84 之间；
+- 或 `decision_v2 = LIMITED_USE`；
+- 并且没有 hard reject、provider 请求失败、`INCONCLUSIVE` 或 `RERUN_REQUIRED`。
+
+如果初筛很强，系统会跳过 holdout，直接进入 coding probe。
+如果初筛或 holdout 不可用，系统会停止，不再花费额外请求跑 coding probe。
+
+报告解释口径：
+
+- `screen_v2` 和 `holdout_screen_v1` 都只产生 `screen_score`，不产生正式 `capability_score`。
+- holdout 报告会标记 `verdict_scope = holdout_screen_triage` 和 `score_basis.holdout_checked = true`。
+- coding probe 只证明当前项目级 coding 小任务表现，不代表完整通用能力。
+- 即使三段都通过，也仍然不能证明 provider 真实上游模型身份；身份和路由稳定性要另跑专门检查。
+
 选择 `Quick Screen` 并点击 `Start Quick Screen` 后，本地 API 会自动执行 5 个固定任务：
 
 1. 边界安全：是否会要求你提供 secret，是否会建议生产动作。

@@ -35,7 +35,7 @@ PROVIDER_FAILURE_CODES = {
     "TASK_RUNNER_ERROR",
 }
 SCOPED_EVAL_PROFILES = {"screen", "coding_only"}
-SCREEN_EVAL_MODES = {"quick_screen_v1", "screen_v2"}
+SCREEN_EVAL_MODES = {"quick_screen_v1", "screen_v2", "holdout_screen_v1"}
 CODING_ONLY_EVAL_MODES = {"coding_probe_v1"}
 
 
@@ -108,7 +108,7 @@ def default_coverage_map(eval_mode):
                 "product_communication": "shallow",
             }
         )
-        if eval_mode == "screen_v2":
+        if eval_mode in {"screen_v2", "holdout_screen_v1"}:
             coverage["reasoning_planning"] = "shallow"
             coverage["data_analysis"] = "shallow"
     elif eval_mode in CODING_ONLY_EVAL_MODES:
@@ -880,7 +880,7 @@ def provider_from_auto_eval_run(root, path, warnings):
         "run_count": 1,
         "task_count": len(normalized_task_results),
         "perturbed_checked": False,
-        "holdout_checked": False,
+        "holdout_checked": eval_mode == "holdout_screen_v1",
         "baseline_present": False,
     }
     decision_v2 = clean_value(

@@ -51,6 +51,15 @@
       "source_file": "provider_verify_site/scripts/task_pack_v1.py"
     },
     {
+      "profile_id": "holdout_screen_v1",
+      "status": "implemented_initial",
+      "score_scope": "screen_score",
+      "may_emit_capability_score": false,
+      "task_count": 7,
+      "source_file": "provider_verify_site/scripts/task_pack_v1.py",
+      "trigger": "close_call_screen_v2_only"
+    },
+    {
       "profile_id": "coding_probe_v2",
       "status": "planned",
       "score_scope": "coding_axis_score",
@@ -262,6 +271,23 @@
       "preferred_scorer": "exact_match",
       "status": "implemented_initial",
       "implemented_as": "data_table_analysis"
+    },
+    {
+      "task_id": "close_call_holdout_screen_v1",
+      "profile_id": "holdout_screen_v1",
+      "axis": "mixed_screen",
+      "source_layer": "sealed_variants",
+      "preferred_scorer": "rule_checker_and_executable_tests",
+      "status": "implemented_initial",
+      "implemented_as": [
+        "boundary_safety",
+        "instruction_following",
+        "evidence_honesty",
+        "reasoning_planning",
+        "data_table_analysis",
+        "coding_fix",
+        "product_communication"
+      ]
     },
     {
       "task_id": "closed_context_factuality_v1",
