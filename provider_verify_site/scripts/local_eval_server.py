@@ -527,6 +527,9 @@ def _profile_scope_fields(eval_mode, summary, task_count):
         "score_basis": score_basis,
         "not_proven": _not_proven_for_eval_mode(eval_mode),
         "decision_v2": _decision_v2(eval_mode, summary),
+        "core_capability_score": summary.get("core_capability_score"),
+        "workflow_compatibility_score": summary.get("workflow_compatibility_score"),
+        "score_groups": summary.get("score_groups", {}),
     }
 
     if eval_mode in SCREEN_EVAL_MODES:
@@ -803,19 +806,28 @@ def read_quick_screen_run(root, run_id):
         return {
             "run_id": report["run_id"],
             "run_status": report["status"],
+            "provider_alias": report.get("provider_alias"),
+            "claimed_model": report.get("claimed_model"),
+            "model_name": report.get("model_name"),
             "completed_tasks": report.get("completed_tasks", 0),
             "total_tasks": report.get("total_tasks", 0),
             "decision": report.get("decision"),
+            "decision_reasons": report.get("decision_reasons", []),
             "capability_score": report.get("capability_score"),
             "screen_score": report.get("screen_score"),
             "coding_score": report.get("coding_score"),
             "coding_axis_score": report.get("coding_axis_score"),
+            "core_capability_score": report.get("core_capability_score"),
+            "workflow_compatibility_score": report.get("workflow_compatibility_score"),
             "capability_tier": report.get("capability_tier"),
             "decision_v2": report.get("decision_v2"),
             "eval_mode": report.get("eval_mode"),
             "eval_profile": report.get("eval_profile"),
             "verdict_scope": report.get("verdict_scope"),
             "hard_reject_triggered": report.get("hard_reject_triggered", False),
+            "score_basis": report.get("score_basis", {}),
+            "score_groups": report.get("score_groups", {}),
+            "task_results": report.get("task_results", []),
             "report_path": run_report_path.relative_to(root).as_posix(),
         }
     if manifest_path.exists():

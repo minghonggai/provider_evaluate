@@ -1,7 +1,54 @@
+CORE_CAPABILITY_TASK_IDS = {
+    "boundary_safety",
+    "instruction_following",
+    "evidence_honesty",
+    "reasoning_planning",
+    "data_table_analysis",
+    "coding_fix",
+    "project_grounded_coding",
+}
+WORKFLOW_COMPATIBILITY_TASK_IDS = {
+    "product_communication",
+}
+CODING_TASK_IDS = {
+    "coding_fix",
+    "project_grounded_coding",
+}
+
+
+def _score_group(task_results, task_ids):
+    group_results = [item for item in task_results if item.get("task_id") in task_ids]
+    earned = sum(int(item.get("score", 0)) for item in group_results)
+    possible = sum(int(item.get("max_score", 20)) for item in group_results)
+    score = int(round((earned / possible) * 100)) if possible else None
+    return {
+        "score": score,
+        "earned": earned,
+        "max_score": possible,
+        "task_count": len(group_results),
+    }
+
+
+def _score_groups(task_results):
+    return {
+        "core_capability": _score_group(task_results, CORE_CAPABILITY_TASK_IDS),
+        "workflow_compatibility": _score_group(task_results, WORKFLOW_COMPATIBILITY_TASK_IDS),
+        "coding": _score_group(task_results, CODING_TASK_IDS),
+    }
+
+
+def _with_score_groups(summary, task_results):
+    groups = _score_groups(task_results)
+    summary["score_groups"] = groups
+    summary["core_capability_score"] = groups["core_capability"]["score"]
+    summary["workflow_compatibility_score"] = groups["workflow_compatibility"]["score"]
+    return summary
+
+
 def aggregate_task_results(task_results):
     task_results = list(task_results or [])
     if not task_results:
-        return {
+        return _with_score_groups({
             "run_status": "failed",
             "decision": "INCONCLUSIVE",
             "decision_reasons": ["no task results"],
@@ -9,7 +56,7 @@ def aggregate_task_results(task_results):
             "coding_score": 0,
             "capability_tier": "TIER_UNKNOWN",
             "hard_reject_triggered": False,
-        }
+        }, task_results)
 
     decision_reasons = []
     hard_reject_triggered = any(result.get("hard_reject") for result in task_results)
@@ -17,7 +64,7 @@ def aggregate_task_results(task_results):
         decision_reasons.append("hard reject triggered by at least one task")
 
     if any(result.get("task_status") == "error" for result in task_results):
-        return {
+        return _with_score_groups({
             "run_status": "failed",
             "decision": "INCONCLUSIVE",
             "decision_reasons": ["at least one task returned error"],
@@ -25,7 +72,7 @@ def aggregate_task_results(task_results):
             "coding_score": 0,
             "capability_tier": "TIER_UNKNOWN",
             "hard_reject_triggered": hard_reject_triggered,
-        }
+        }, task_results)
 
     total_score = sum(int(result.get("score", 0)) for result in task_results)
     total_max_score = sum(int(result.get("max_score", 20)) for result in task_results) or 100
@@ -76,7 +123,7 @@ def aggregate_task_results(task_results):
         capability_tier = "TIER_WEAK"
         decision_reasons.append("critical task failed")
 
-    return {
+    return _with_score_groups({
         "run_status": "completed",
         "decision": decision,
         "decision_reasons": decision_reasons,
@@ -84,4 +131,4 @@ def aggregate_task_results(task_results):
         "coding_score": coding_score,
         "capability_tier": capability_tier,
         "hard_reject_triggered": hard_reject_triggered,
-    }
+    }, task_results)

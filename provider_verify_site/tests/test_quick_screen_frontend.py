@@ -64,6 +64,8 @@ class QuickScreenFrontendTests(unittest.TestCase):
         self.assertIn("Provider 模型完整评估", js)
         self.assertIn("临界时自动复测", js)
         self.assertIn("run.adaptiveStageHoldout", js)
+        self.assertIn("run.adaptiveHoldoutFallbackPending", js)
+        self.assertIn("_holdout_fallback", js)
 
     def test_model_list_errors_are_actionable(self):
         js = Path("provider_verify_site/app.js").read_text(encoding="utf-8")
@@ -118,8 +120,8 @@ class QuickScreenFrontendTests(unittest.TestCase):
         self.assertIn("en:", js)
         self.assertIn("setLanguage", js)
         self.assertIn("syncLanguageUi", js)
-        self.assertIn("模型能力评测报告", js)
-        self.assertIn("Model Capability Report", js)
+        self.assertIn("模型评测控制台", js)
+        self.assertIn("Evaluation Console", js)
 
     def test_frontend_explains_current_run_and_local_history_scope(self):
         html = Path("provider_verify_site/index.html").read_text(encoding="utf-8")
@@ -129,14 +131,14 @@ class QuickScreenFrontendTests(unittest.TestCase):
         self.assertIn('class="result-guide"', html)
         self.assertIn('class="local-overview"', html)
         self.assertIn('data-i18n="summary.body"', html)
-        self.assertIn("验证 Provider 模型声明", js)
+        self.assertIn("把模型声明变成可审计证据", js)
         self.assertIn("先读取 provider 自己返回的模型列表", js)
-        self.assertIn("用本地证据判断实际表现是否与声明一致", js)
+        self.assertIn("把能力、代码可用性和路由风险分开呈现", js)
         self.assertNotIn("SeerBench reference", html)
         self.assertNotIn("按 SeerBench 的阅读方式组织本地证据", html)
         self.assertIn("这些数字只统计你本机保存过的历史评测记录", js)
-        self.assertIn("How to read the result", js)
-        self.assertIn("Verify a Provider Model Claim", js)
+        self.assertIn("Reading priority", js)
+        self.assertIn("Turn model claims into auditable evidence", js)
         self.assertIn("not the final verdict of the current run", js)
 
     def test_app_maps_machine_values_to_human_readable_labels(self):
@@ -185,6 +187,11 @@ class QuickScreenFrontendTests(unittest.TestCase):
         self.assertIn("detail.decisionV2", js)
         self.assertIn("detail.screenScore", js)
         self.assertIn("detail.codingAxisScore", js)
+        self.assertIn("detail.coreCapabilityScore", js)
+        self.assertIn("detail.workflowCompatibilityScore", js)
+        self.assertIn("core_capability_score", js)
+        self.assertIn("workflow_compatibility_score", js)
+        self.assertIn("score_groups", js)
         self.assertIn("detail.taskBreakdown", js)
         self.assertIn("detail.noTaskResults", js)
         self.assertIn('class="task-list"', js)
@@ -208,10 +215,17 @@ class QuickScreenFrontendTests(unittest.TestCase):
         self.assertIn("run.progress.holdout", js)
         self.assertIn("run.progress.coding", js)
         self.assertIn("run.step.running", js)
+        self.assertIn("run.checks.summary", js)
+        self.assertIn("run.checks.scoreFormula", js)
+        self.assertIn("function renderScreenCheckPanel", js)
+        self.assertIn("summarizeCheckResults", js)
+        self.assertIn('class="assessment-checks"', js)
         self.assertIn("setRunResult(message, type = \"neutral\", html = false)", js)
         self.assertIn('class="run-progress"', js)
         self.assertIn(".run-progress", css)
         self.assertIn(".progress-steps", css)
+        self.assertIn(".assessment-checks", css)
+        self.assertIn(".assessment-check-grid", css)
 
     def test_report_index_falls_back_to_public_example(self):
         js = Path("provider_verify_site/app.js").read_text(encoding="utf-8")

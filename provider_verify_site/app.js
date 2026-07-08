@@ -20,22 +20,22 @@ const PROVIDER_PROTOCOL_LABELS = {
 };
 const UI_COPY = {
   zh: {
-    "app.documentTitle": "模型能力评测报告",
-    "app.title": "模型能力评测报告",
+    "app.documentTitle": "Provider 模型评测控制台",
+    "app.title": "模型评测控制台",
     "app.boundary": "本地能力证据",
-    "intro.label": "Provider 能力体检",
-    "intro.title": "验证 Provider 模型声明",
-    "intro.body": "填入 provider endpoint 和 API key，先读取 provider 自己返回的模型列表，再选择要评测的模型。本机会自动运行固定任务，用本地证据判断实际表现是否与声明一致。",
-    "intro.primaryAction": "开始一次本地评测",
-    "intro.secondaryNote": "每个 provider / model 组合单独记录，互不合并。",
+    "intro.label": "Provider Evaluation Console",
+    "intro.title": "把模型声明变成可审计证据",
+    "intro.body": "先读取 provider 自己返回的模型列表，再选择目标模型。系统会按固定任务运行、打分、保存原始输出，并把能力、代码可用性和路由风险分开呈现。",
+    "intro.primaryAction": "新建评测",
+    "intro.secondaryNote": "API key 只用于本次会话；每个 provider / model 组合独立记录。",
     "guide.aria": "结果阅读说明",
-    "guide.title": "怎么看结果",
-    "guide.score.title": "能力分",
-    "guide.score.body": "只代表本次任务表现，不等于官方身份认证。",
-    "guide.coding.title": "代码信号",
-    "guide.coding.body": "判断是否能进入受控 coding 试用。",
-    "guide.route.title": "路由风险",
-    "guide.route.body": "单独标记 provider 是否透明、是否疑似降级。",
+    "guide.title": "判读优先级",
+    "guide.score.title": "能力证据",
+    "guide.score.body": "7 项任务给出本地能力分，只代表这次任务表现。",
+    "guide.coding.title": "代码准入",
+    "guide.coding.body": "代码轴单独判断是否能进入受控 coding 试用。",
+    "guide.route.title": "路由边界",
+    "guide.route.body": "身份与路由风险单独标记，不替代能力评分。",
     "entry.aria": "新建评测",
     "filters.aria": "筛选器",
     "form.providerAlias": "Provider 别名",
@@ -88,7 +88,7 @@ const UI_COPY = {
     "plan.quick.button": "开始快速评估",
     "plan.fullAdaptive.label": "完整评估",
     "plan.fullAdaptive.title": "Provider 模型完整评估",
-    "plan.fullAdaptive.note": "一次完成能力筛查；临界结果会自动追加 holdout 复测，仍可用时再补代码探针。预计消耗取决于 provider 定价。",
+    "plan.fullAdaptive.note": "一次完成能力筛查；临界结果会自动追加复测，仍可用时再补代码探针。预计消耗取决于 provider 定价。",
     "plan.fullAdaptive.button": "开始完整评估",
     "button.loadModels": "读取供应商模型列表",
     "button.reset": "重置",
@@ -103,22 +103,36 @@ const UI_COPY = {
     "run.failed": "运行失败: {message}",
     "run.status": "运行 {runId}: {status} | 决策={decision} | 证据分={score} | Coding={coding}",
     "run.statusUnavailable": "运行状态不可用: {message}",
-    "run.adaptiveStarting": "正在开始完整定档：先跑能力筛查，临界时自动复测，必要时补代码探针。",
+    "run.adaptiveStarting": "正在开始完整评估：先跑能力筛查，临界时自动复测，必要时补代码探针。",
     "run.adaptiveStageScreen": "能力筛查完成：{runId} | 决策={decision} | 分数={score}",
-    "run.adaptiveStageHoldout": "临界复测完成：{runId} | 决策={decision} | 分数={score}",
+    "run.adaptiveStageHoldout": "复测完成：{runId} | 决策={decision} | 分数={score}",
     "run.adaptiveStageCoding": "代码探针完成：{runId} | 决策={decision} | 分数={score}",
-    "run.adaptiveHoldoutPending": "初筛接近阈值，正在自动运行 holdout 临界复测...",
+    "run.adaptiveHoldoutPending": "初筛接近阈值，正在自动运行临界复测...",
+    "run.adaptiveHoldoutFallbackPending": "当前后台不支持独立临界复测模式，已改用同样 7 项检查再跑一次，避免评估中断。",
+    "run.adaptiveHoldoutFallbackComplete": "复测已用兼容模式完成；建议稍后重启本地服务以启用独立 holdout 题组。",
     "run.adaptiveCodingPending": "当前筛查证据仍可用，正在自动补代码探针...",
     "run.adaptiveSkipCoding": "能力筛查未达到补跑条件，已停止；决策={decision}。",
     "run.adaptiveComplete": "完整定档完成。",
     "run.progress.title": "本次评测流程",
-    "run.progress.cost": "预计：能力筛查约 7 次模型请求；临界时追加 7 次 holdout；仍可用时追加 1 次代码探针。实际费用按 provider token 定价。",
-    "run.progress.models": "读取模型列表并选择待测模型",
-    "run.progress.screen": "运行 7 项能力筛查",
-    "run.progress.score": "本地规则评分与扣分归因",
-    "run.progress.holdout": "临界 holdout 复测",
-    "run.progress.coding": "代码探针（达标后自动补跑）",
-    "run.progress.save": "保存报告并刷新记录",
+    "run.progress.cost": "系统会先做 7 项能力检查；如果分数卡在边界，再追加一组不同题目的复测；筛查仍可用时才补一次代码实战。实际费用按 provider token 定价。",
+    "run.progress.models": "确认 provider 可访问，并从模型列表选择目标模型",
+    "run.progress.screen": "做 7 项能力检查：安全、指令、证据、推理、数据、代码和表达",
+    "run.progress.score": "统计每项状态、单项分和总分",
+    "run.progress.holdout": "分数接近边界时，用另一组题复测",
+    "run.progress.coding": "筛查可用后，再做一次更贴近项目的代码实战",
+    "run.progress.save": "保存原始输出、单项分和最终建议",
+    "run.progress.stepResult": "{decision}，分数 {score}",
+    "run.checks.title": "7 项检查怎么评",
+    "run.checks.stage.screen": "初筛检查",
+    "run.checks.stage.holdout": "临界复测",
+    "run.checks.stage.fallback": "兼容复测",
+    "run.checks.pending": "等待筛查完成后显示每项得分。",
+    "run.checks.summary": "已返回 {returned}/{total} 项，通过 {passed} 项，未通过 {failed} 项，异常 {errored} 项。原始分 {score}/{maxScore}，折算 {percent}/100。",
+    "run.checks.summaryNoScore": "已返回 {returned}/{total} 项，通过 {passed} 项，未通过 {failed} 项，异常 {errored} 项，等待本地评分。",
+    "run.checks.scoreFormula": "评分口径：每项满分 20 分，总分 = 单项得分合计 / 单项满分合计 × 100。完成不等于通过，是否可信要同时看单项状态、扣分标记和最终建议。",
+    "run.checks.score": "{score}/{maxScore} 分",
+    "run.checks.noScore": "未评分",
+    "run.checks.waiting": "等待",
     "run.step.done": "完成",
     "run.step.running": "进行中",
     "run.step.pending": "等待",
@@ -193,6 +207,8 @@ const UI_COPY = {
     "detail.capabilityScore": "能力分数",
     "detail.screenScore": "快速筛查分",
     "detail.codingAxisScore": "代码轴分",
+    "detail.coreCapabilityScore": "核心能力分",
+    "detail.workflowCompatibilityScore": "工作流兼容分",
     "detail.codingScore": "Coding 分数",
     "detail.codeStatus": "代码状态",
     "detail.context": "上下文",
@@ -252,22 +268,22 @@ const UI_COPY = {
     "error.reportUnavailable": "report_index.json 不可用",
   },
   en: {
-    "app.documentTitle": "Model Capability Report",
-    "app.title": "Model Capability Report",
+    "app.documentTitle": "Provider Model Evaluation Console",
+    "app.title": "Evaluation Console",
     "app.boundary": "local capability evidence",
-    "intro.label": "Provider capability check",
-    "intro.title": "Verify a Provider Model Claim",
-    "intro.body": "Enter the provider endpoint and API key, load the model list returned by the provider, then choose the model to evaluate. The local runner executes fixed tasks and uses local evidence to judge whether observed behavior matches the claim.",
-    "intro.primaryAction": "Start a local evaluation",
-    "intro.secondaryNote": "Each provider / model combination is recorded separately.",
+    "intro.label": "Provider Evaluation Console",
+    "intro.title": "Turn model claims into auditable evidence",
+    "intro.body": "Load the model list returned by the provider, then choose the target model. The runner executes fixed tasks, scores them locally, preserves raw output, and separates capability, coding readiness, and route risk.",
+    "intro.primaryAction": "New evaluation",
+    "intro.secondaryNote": "The API key is only used for this session; each provider / model combination is recorded separately.",
     "guide.aria": "how to read results",
-    "guide.title": "How to read the result",
-    "guide.score.title": "Capability score",
-    "guide.score.body": "This reflects task performance, not official identity verification.",
-    "guide.coding.title": "Coding signal",
-    "guide.coding.body": "Use it to decide whether controlled coding trials are reasonable.",
-    "guide.route.title": "Route risk",
-    "guide.route.body": "Provider transparency and possible downgrade risk are judged separately.",
+    "guide.title": "Reading priority",
+    "guide.score.title": "Capability evidence",
+    "guide.score.body": "Seven local tasks produce the capability score for this run only.",
+    "guide.coding.title": "Coding gate",
+    "guide.coding.body": "The coding axis separately decides whether controlled coding trials are reasonable.",
+    "guide.route.title": "Route boundary",
+    "guide.route.body": "Identity and route risk are tracked separately from capability scoring.",
     "entry.aria": "new evaluation",
     "filters.aria": "filters",
     "form.providerAlias": "Provider Alias",
@@ -320,7 +336,7 @@ const UI_COPY = {
     "plan.quick.button": "Start Quick Assessment",
     "plan.fullAdaptive.label": "Complete Assessment",
     "plan.fullAdaptive.title": "Provider Model Complete Assessment",
-    "plan.fullAdaptive.note": "Runs the capability screen once, adds a holdout rerun for close calls, then adds the coding probe when the holdout remains usable. Estimated usage depends on provider pricing.",
+    "plan.fullAdaptive.note": "Runs the capability screen once, adds a retest for close calls, then adds the coding probe when the screen remains usable. Estimated usage depends on provider pricing.",
     "plan.fullAdaptive.button": "Start full assessment",
     "button.loadModels": "Load provider model list",
     "button.reset": "Reset",
@@ -335,22 +351,36 @@ const UI_COPY = {
     "run.failed": "Run failed: {message}",
     "run.status": "Run {runId}: {status} | decision={decision} | evidence_score={score} | coding={coding}",
     "run.statusUnavailable": "Run status unavailable: {message}",
-    "run.adaptiveStarting": "Starting full assessment: capability screen first, close-call holdout when needed, coding probe if useful.",
+    "run.adaptiveStarting": "Starting full assessment: capability screen first, close-call retest when needed, coding probe if useful.",
     "run.adaptiveStageScreen": "Capability screen complete: {runId} | decision={decision} | score={score}",
-    "run.adaptiveStageHoldout": "Close-call holdout complete: {runId} | decision={decision} | score={score}",
+    "run.adaptiveStageHoldout": "Retest complete: {runId} | decision={decision} | score={score}",
     "run.adaptiveStageCoding": "Coding probe complete: {runId} | decision={decision} | score={score}",
-    "run.adaptiveHoldoutPending": "The first screen is near the threshold. Running the holdout automatically...",
+    "run.adaptiveHoldoutPending": "The first screen is near the threshold. Running the close-call retest automatically...",
+    "run.adaptiveHoldoutFallbackPending": "This backend does not support the independent holdout mode, so the console is rerunning the same 7 checks to keep the assessment moving.",
+    "run.adaptiveHoldoutFallbackComplete": "The retest completed in compatibility mode. Restart the local service later to enable the independent holdout task set.",
     "run.adaptiveCodingPending": "Current screening evidence remains usable. Running coding probe automatically...",
     "run.adaptiveSkipCoding": "Capability screen did not meet the coding-probe condition. Stopped here; decision={decision}.",
     "run.adaptiveComplete": "Full assessment complete.",
     "run.progress.title": "Current evaluation flow",
-    "run.progress.cost": "Estimate: about 7 model requests for the capability screen; 7 more for close-call holdout; 1 extra coding probe when still usable. Actual cost follows provider token pricing.",
-    "run.progress.models": "Load model list and select model",
-    "run.progress.screen": "Run 7 capability-screen tasks",
-    "run.progress.score": "Apply local scoring and failure attribution",
-    "run.progress.holdout": "Close-call holdout rerun",
-    "run.progress.coding": "Coding probe (auto-added after passing screen)",
-    "run.progress.save": "Save report and refresh records",
+    "run.progress.cost": "The run starts with 7 capability checks. Near-threshold results get a separate retest set, and coding practice is added only when the screen remains usable. Actual cost follows provider token pricing.",
+    "run.progress.models": "Confirm provider access and select the target model",
+    "run.progress.screen": "Run 7 checks: safety, instruction following, evidence, reasoning, data, coding, and communication",
+    "run.progress.score": "Summarize item status, item points, and total score",
+    "run.progress.holdout": "Use a separate question set when the score is near the threshold",
+    "run.progress.coding": "Add one project-like coding task after the screen remains usable",
+    "run.progress.save": "Save raw output, item scores, and final recommendation",
+    "run.progress.stepResult": "{decision}, score {score}",
+    "run.checks.title": "How the 7 checks are scored",
+    "run.checks.stage.screen": "Initial screen",
+    "run.checks.stage.holdout": "Close-call holdout",
+    "run.checks.stage.fallback": "Compatibility retest",
+    "run.checks.pending": "Item scores will appear after the screen finishes.",
+    "run.checks.summary": "Returned {returned}/{total} checks, {passed} passed, {failed} failed, {errored} errored. Raw points {score}/{maxScore}, normalized to {percent}/100.",
+    "run.checks.summaryNoScore": "Returned {returned}/{total} checks, {passed} passed, {failed} failed, {errored} errored. Waiting for local scoring.",
+    "run.checks.scoreFormula": "Scoring rule: each check is worth 20 points. Total score = item points / max item points × 100. Completed does not mean passed; read the item status, deduction flags, and final recommendation together.",
+    "run.checks.score": "{score}/{maxScore} pts",
+    "run.checks.noScore": "Not scored",
+    "run.checks.waiting": "Waiting",
     "run.step.done": "done",
     "run.step.running": "running",
     "run.step.pending": "pending",
@@ -425,6 +455,8 @@ const UI_COPY = {
     "detail.capabilityScore": "Capability score",
     "detail.screenScore": "Screen score",
     "detail.codingAxisScore": "Coding axis score",
+    "detail.coreCapabilityScore": "Core capability score",
+    "detail.workflowCompatibilityScore": "Workflow compatibility score",
     "detail.codingScore": "Coding score",
     "detail.codeStatus": "Code status",
     "detail.context": "Context",
@@ -542,6 +574,8 @@ const VALUE_LABELS = {
     INCONCLUSIVE: "未形成结论",
     pass: "通过",
     PASS: "通过",
+    fail: "未通过",
+    FAIL: "未通过",
     hold: "观察",
     HOLD: "观察",
     reject: "拒绝",
@@ -645,6 +679,8 @@ const VALUE_LABELS = {
     INCONCLUSIVE: "Inconclusive",
     pass: "Pass",
     PASS: "Pass",
+    fail: "Failed",
+    FAIL: "Failed",
     hold: "Hold",
     HOLD: "Hold",
     reject: "Reject",
@@ -866,6 +902,7 @@ function badgeClass(value) {
   if (
     normalized.includes("weak") ||
     normalized.includes("downgrade") ||
+    normalized.includes("fail") ||
     normalized.includes("reject") ||
     normalized === "high" ||
     normalized === "do_not_use"
@@ -876,6 +913,7 @@ function badgeClass(value) {
     normalized.includes("hold") ||
     normalized.includes("unverified") ||
     normalized.includes("unknown") ||
+    normalized.includes("pending") ||
     normalized.includes("needs_more_data") ||
     normalized.includes("usable")
   ) {
@@ -1034,6 +1072,79 @@ function summarizeTaskScores(taskResults = []) {
   };
 }
 
+function summarizeCheckResults(result) {
+  const taskResults = result?.task_results || [];
+  const scores = summarizeTaskScores(taskResults);
+  return {
+    ...scores,
+    returned: taskResults.length,
+    total: numericScore(result?.score_basis?.task_count, SCREEN_TASK_IDS.length),
+    passed: taskResults.filter((task) => task.task_status === "pass").length,
+    failed: taskResults.filter((task) => task.task_status === "fail").length,
+    errored: taskResults.filter((task) => task.task_status === "error").length,
+  };
+}
+
+function taskStateClass(task) {
+  if (!task) return "pending";
+  if (task.task_status === "pass") return "pass";
+  if (task.task_status === "error") return "error";
+  return "fail";
+}
+
+function renderScreenCheckPanel(result = null, stage = "screen") {
+  const taskResults = result?.task_results || [];
+  const taskById = new Map(taskResults.map((task) => [task.task_id, task]));
+  const summary = summarizeCheckResults(result);
+  const summaryText =
+    summary.percent === null
+      ? taskResults.length
+        ? formatCopy("run.checks.summaryNoScore", summary)
+        : t("run.checks.pending")
+      : formatCopy("run.checks.summary", {
+          ...summary,
+          score: summary.totalScore,
+          maxScore: summary.totalMax,
+          percent: summary.percent,
+        });
+  return `
+    <section class="assessment-checks" aria-label="${escapeHtml(t("run.checks.title"))}">
+      <div class="assessment-checks-head">
+        <div>
+          <strong>${escapeHtml(t("run.checks.title"))}</strong>
+          <span>${escapeHtml(t(`run.checks.stage.${stage}`))}</span>
+        </div>
+        <p>${escapeHtml(summaryText)}</p>
+      </div>
+      <p class="assessment-checks-rule">${escapeHtml(t("run.checks.scoreFormula"))}</p>
+      <div class="assessment-check-grid">
+        ${SCREEN_TASK_IDS.map((taskId, index) => {
+          const task = taskById.get(taskId);
+          const meta = taskMeta(taskId);
+          const scoreLine = task
+            ? formatCopy("run.checks.score", {
+                score: scoreText(task.score),
+                maxScore: scoreText(task.max_score),
+              })
+            : t("run.checks.noScore");
+          const status = task ? renderBadge(task.task_status) : `<span class="badge amber">${escapeHtml(t("run.checks.waiting"))}</span>`;
+          return `
+            <article class="assessment-check assessment-check--${escapeHtml(taskStateClass(task))}">
+              <div class="assessment-check-top">
+                <span class="assessment-check-index">${index + 1}</span>
+                <strong>${escapeHtml(displayLabel(taskId))}</strong>
+                ${status}
+              </div>
+              <p>${escapeHtml(meta.purpose)}</p>
+              <em>${escapeHtml(scoreLine)}</em>
+            </article>
+          `;
+        }).join("")}
+      </div>
+    </section>
+  `;
+}
+
 function scoreMeter(value, labelText) {
   const percent = value === null || value === undefined ? 0 : clampPercent(value);
   const display = value === null || value === undefined ? "N/A" : `${percent}`;
@@ -1057,6 +1168,10 @@ function localizedList(values = [], emptyKey = "detail.noFlags") {
 
 function primaryScore(item) {
   return item.capability_score ?? item.screen_score ?? item.coding_axis_score;
+}
+
+function scoreGroup(item, groupId) {
+  return item?.score_groups?.[groupId] || {};
 }
 
 function primaryScoreScope(item) {
@@ -1185,16 +1300,16 @@ function renderExecutiveSummary(item) {
 
       <div class="detail-score-strip" aria-label="${escapeHtml(t("detail.summaryScores"))}">
         <div>
-          <span>${escapeHtml(t("detail.screenScore"))}</span>
-          <strong>${escapeHtml(scoreText(item.screen_score))}</strong>
+          <span>${escapeHtml(t("detail.coreCapabilityScore"))}</span>
+          <strong>${escapeHtml(scoreText(item.core_capability_score))}</strong>
+        </div>
+        <div>
+          <span>${escapeHtml(t("detail.workflowCompatibilityScore"))}</span>
+          <strong>${escapeHtml(scoreText(item.workflow_compatibility_score))}</strong>
         </div>
         <div>
           <span>${escapeHtml(t("detail.codingAxisScore"))}</span>
           <strong>${escapeHtml(scoreText(item.coding_axis_score ?? item.coding_score))}</strong>
-        </div>
-        <div>
-          <span>${escapeHtml(t("detail.recommendedUse"))}</span>
-          <strong>${escapeHtml(displayLabel(item.recommended_use))}</strong>
         </div>
       </div>
 
@@ -1227,6 +1342,8 @@ function renderScoreRationale(item) {
         coding: scoreText(numericScore(scores.codingTask.score) * 5),
       })
     : t("detail.codingMissing");
+  const coreGroup = scoreGroup(item, "core_capability");
+  const workflowGroup = scoreGroup(item, "workflow_compatibility");
   const coverage = item.coverage_map || {};
   const coverageItems = Object.entries(coverage).length
     ? Object.entries(coverage)
@@ -1243,6 +1360,14 @@ function renderScoreRationale(item) {
         <div class="score-rationale-card score-rationale-card--wide">
           ${scoreMeter(primary, t("table.score"))}
           <p>${escapeHtml(t("detail.decisionRuleBody"))}</p>
+        </div>
+        <div class="score-rationale-card">
+          <span>${escapeHtml(t("detail.coreCapabilityScore"))}</span>
+          <strong>${escapeHtml(scoreText(item.core_capability_score ?? coreGroup.score))}</strong>
+        </div>
+        <div class="score-rationale-card">
+          <span>${escapeHtml(t("detail.workflowCompatibilityScore"))}</span>
+          <strong>${escapeHtml(scoreText(item.workflow_compatibility_score ?? workflowGroup.score))}</strong>
         </div>
         <div class="score-rationale-card">
           <span>${escapeHtml(t("detail.taskCount"))}</span>
@@ -1474,13 +1599,22 @@ function decisionForRunResult(result) {
   return result?.decision_v2 || result?.decision || "pending";
 }
 
+function stageDetailForRunResult(result) {
+  if (!result) return "";
+  return formatCopy("run.progress.stepResult", {
+    decision: displayLabel(decisionForRunResult(result)),
+    score: scoreForRunResult(result),
+  });
+}
+
 function runStepHtml(labelKey, status, detail = "") {
+  const detailText = detail ? ` - ${escapeHtml(detail)}` : "";
   return `
     <div class="progress-step progress-step--${escapeHtml(status)}">
       <span class="progress-dot"></span>
       <div>
         <strong>${escapeHtml(t(labelKey))}</strong>
-        <em>${escapeHtml(t(`run.step.${status}`))}${detail ? ` · ${escapeHtml(detail)}` : ""}</em>
+        <em>${escapeHtml(t(`run.step.${status}`))}${detailText}</em>
       </div>
     </div>
   `;
@@ -1494,18 +1628,15 @@ function renderRunProgress({
   saveState = "pending",
   screenResult = null,
   holdoutResult = null,
+  holdoutStage = "holdout",
   codingResult = null,
   footer = "",
 } = {}) {
-  const screenDetail = screenResult
-    ? `${decisionForRunResult(screenResult)} / ${scoreForRunResult(screenResult)}`
-    : "";
-  const holdoutDetail = holdoutResult
-    ? `${decisionForRunResult(holdoutResult)} / ${scoreForRunResult(holdoutResult)}`
-    : "";
-  const codingDetail = codingResult
-    ? `${decisionForRunResult(codingResult)} / ${scoreForRunResult(codingResult)}`
-    : "";
+  const screenDetail = stageDetailForRunResult(screenResult);
+  const holdoutDetail = stageDetailForRunResult(holdoutResult);
+  const codingDetail = stageDetailForRunResult(codingResult);
+  const checkResult = holdoutResult || screenResult;
+  const checkStage = holdoutResult ? holdoutStage : "screen";
   return `
     <div class="run-progress">
       <div class="run-progress-head">
@@ -1520,6 +1651,7 @@ function renderRunProgress({
         ${runStepHtml("run.progress.coding", codingState, codingDetail)}
         ${runStepHtml("run.progress.save", saveState)}
       </div>
+      ${renderScreenCheckPanel(checkResult, checkStage)}
       ${footer ? `<p>${escapeHtml(footer)}</p>` : ""}
     </div>
   `;
@@ -1622,7 +1754,30 @@ async function runAdaptiveAssessment(payload) {
       "neutral",
       true,
     );
-    holdoutResult = await runSingleEvalMode(payload, "holdout_screen_v1", false);
+    try {
+      holdoutResult = await runSingleEvalMode(payload, "holdout_screen_v1", false);
+    } catch (error) {
+      const message = String(error?.message || error || "");
+      if (!/holdout_screen_v1|eval_mode|unsupported|invalid/i.test(message)) {
+        throw error;
+      }
+      setRunResult(
+        renderRunProgress({
+          screenState: "done",
+          scoreState: "done",
+          holdoutState: "running",
+          codingState: "pending",
+          saveState: "pending",
+          screenResult,
+          holdoutStage: "fallback",
+          footer: t("run.adaptiveHoldoutFallbackPending"),
+        }),
+        "neutral",
+        true,
+      );
+      holdoutResult = await runSingleEvalMode(payload, "screen_v2", false);
+      holdoutResult = { ...holdoutResult, _holdout_fallback: true };
+    }
     codingBasisResult = holdoutResult;
     stageLines.push(
       formatCopy("run.adaptiveStageHoldout", {
@@ -1634,6 +1789,8 @@ async function runAdaptiveAssessment(payload) {
   }
 
   const holdoutState = holdoutResult ? "done" : "skipped";
+  const holdoutStage = holdoutResult?._holdout_fallback ? "fallback" : "holdout";
+  const holdoutFooter = holdoutResult?._holdout_fallback ? t("run.adaptiveHoldoutFallbackComplete") : "";
   if (shouldRunCodingProbe(codingBasisResult)) {
     setRunResult(
       renderRunProgress({
@@ -1644,7 +1801,8 @@ async function runAdaptiveAssessment(payload) {
         saveState: "pending",
         screenResult,
         holdoutResult,
-        footer: t("run.adaptiveCodingPending"),
+        holdoutStage,
+        footer: [holdoutFooter, t("run.adaptiveCodingPending")].filter(Boolean).join(" "),
       }),
       "neutral",
       true,
@@ -1666,6 +1824,7 @@ async function runAdaptiveAssessment(payload) {
         saveState: "done",
         screenResult,
         holdoutResult,
+        holdoutStage,
         codingResult,
         footer: t("run.adaptiveComplete"),
       }),
@@ -1683,6 +1842,7 @@ async function runAdaptiveAssessment(payload) {
         saveState: "done",
         screenResult,
         holdoutResult,
+        holdoutStage,
         footer: formatCopy("run.adaptiveSkipCoding", { decision: decisionForRunResult(codingBasisResult) }),
       }),
       "success",
@@ -1926,6 +2086,8 @@ function renderDetail() {
         ${kv(t("detail.capabilityTier"), item.capability_tier)}
         ${kv(t("detail.capabilityScore"), scoreText(item.capability_score))}
         ${kv(t("detail.screenScore"), scoreText(item.screen_score))}
+        ${kv(t("detail.coreCapabilityScore"), scoreText(item.core_capability_score))}
+        ${kv(t("detail.workflowCompatibilityScore"), scoreText(item.workflow_compatibility_score))}
         ${kv(t("detail.codingAxisScore"), scoreText(item.coding_axis_score))}
         ${kv(t("detail.codingScore"), scoreText(item.coding_score))}
         ${kv(t("detail.codeStatus"), item.code_quality_status)}

@@ -37,6 +37,17 @@ PROVIDER_FAILURE_CODES = {
 SCOPED_EVAL_PROFILES = {"screen", "coding_only"}
 SCREEN_EVAL_MODES = {"quick_screen_v1", "screen_v2", "holdout_screen_v1"}
 CODING_ONLY_EVAL_MODES = {"coding_probe_v1"}
+CORE_CAPABILITY_TASK_IDS = {
+    "boundary_safety",
+    "instruction_following",
+    "evidence_honesty",
+    "reasoning_planning",
+    "data_table_analysis",
+    "coding_fix",
+    "project_grounded_coding",
+}
+WORKFLOW_COMPATIBILITY_TASK_IDS = {"product_communication"}
+CODING_TASK_IDS = {"coding_fix", "project_grounded_coding"}
 
 
 def parse_bool(value):
@@ -78,6 +89,26 @@ def infer_verdict_scope(payload, eval_profile):
     if eval_profile == "coding_only":
         return "coding_only"
     return "unknown"
+
+
+def score_group_from_tasks(task_results, task_ids):
+    group_results = [item for item in task_results or [] if item.get("task_id") in task_ids]
+    earned = sum(int_or_none(item.get("score")) or 0 for item in group_results)
+    possible = sum(int_or_none(item.get("max_score")) or 20 for item in group_results)
+    return {
+        "score": int(round((earned / possible) * 100)) if possible else None,
+        "earned": earned,
+        "max_score": possible,
+        "task_count": len(group_results),
+    }
+
+
+def score_groups_from_tasks(task_results):
+    return {
+        "core_capability": score_group_from_tasks(task_results, CORE_CAPABILITY_TASK_IDS),
+        "workflow_compatibility": score_group_from_tasks(task_results, WORKFLOW_COMPATIBILITY_TASK_IDS),
+        "coding": score_group_from_tasks(task_results, CODING_TASK_IDS),
+    }
 
 
 def base_coverage_map():
@@ -866,6 +897,14 @@ def provider_from_auto_eval_run(root, path, warnings):
         code_quality_status = "reject"
 
     normalized_task_results = normalize_task_results(payload.get("task_results"))
+    computed_score_groups = score_groups_from_tasks(normalized_task_results)
+    score_groups = payload.get("score_groups") or computed_score_groups
+    core_capability_score = int_or_none(payload.get("core_capability_score"))
+    if core_capability_score is None:
+        core_capability_score = score_groups.get("core_capability", {}).get("score")
+    workflow_compatibility_score = int_or_none(payload.get("workflow_compatibility_score"))
+    if workflow_compatibility_score is None:
+        workflow_compatibility_score = score_groups.get("workflow_compatibility", {}).get("score")
     flags = extract_task_result_flags(payload.get("task_results"))
     if payload.get("hard_reject_triggered"):
         flags.append("hard_reject_triggered")
@@ -949,6 +988,9 @@ def provider_from_auto_eval_run(root, path, warnings):
         "code_quality_score": None,
         "screen_score": screen_score,
         "coding_axis_score": coding_axis_score,
+        "core_capability_score": core_capability_score,
+        "workflow_compatibility_score": workflow_compatibility_score,
+        "score_groups": score_groups,
         "capability_score": capability_score,
         "capability_tier": clean_value(payload.get("capability_tier"), "TIER_UNKNOWN"),
         "coding_score": coding_score,

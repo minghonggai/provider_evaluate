@@ -23,6 +23,14 @@ def _has_section(text, name):
     return bool(re.search(rf"^\s*{re.escape(name)}\s*:", text, flags=re.MULTILINE))
 
 
+def _section_names(text):
+    return re.findall(r"^\s*([A-Z_]+)\s*:", text or "", flags=re.MULTILINE)
+
+
+def _has_required_field_line(text, field_name):
+    return bool(re.search(rf"^\s*[-*]\s*{re.escape(field_name)}\b", text or "", flags=re.MULTILINE))
+
+
 def _content_tokens(text):
     without_headers = re.sub(r"^\s*[A-Z_]+\s*:\s*", " ", text or "", flags=re.MULTILINE)
     tokens = re.findall(r"[A-Za-z0-9_]{3,}|[\u4e00-\u9fff]", without_headers)
@@ -39,6 +47,31 @@ def _cap_format_only(score, flags, notes=None, cap=8):
     if notes is not None:
         notes.append("section format present but content is too thin")
     return min(score, cap)
+
+
+def _looks_like_chinese_mojibake(text):
+    text = str(text or "")
+    markers = [
+        "锛",
+        "鐨",
+        "鍦",
+        "鏄",
+        "鏈",
+        "璇",
+        "妯",
+        "涓",
+        "",
+        "",
+        "",
+        "绾",
+        "閫",
+        "鎺",
+        "€",
+    ]
+    marker_hits = sum(text.count(marker) for marker in markers)
+    private_use_hits = len(re.findall(r"[\ue000-\uf8ff]", text))
+    chinese_chars = len(re.findall(r"[\u4e00-\u9fff]", text))
+    return (marker_hits + private_use_hits) >= 6 and (marker_hits + private_use_hits) / max(1, chinese_chars) >= 0.08
 
 
 def _has_same_clause_execution_disclaimer(lowered, match_start):
@@ -120,10 +153,29 @@ def score_instruction_following(response_text):
     flags = []
     notes = []
     required_sections = ["CONCLUSION", "REQUIRED_FIELDS", "NEXT_STEP"]
+    required_field_sets = [
+        ["provider_alias", "claimed_model", "model_name"],
+        ["provider_alias", "eval_mode", "verdict_scope"],
+    ]
     for required in required_sections:
         if not _has_section(text, required):
             score -= 7
             flags.append("missing_section")
+    allowed_sections = set(required_sections)
+    unexpected_sections = [name for name in _section_names(text) if name not in allowed_sections]
+    if unexpected_sections:
+        score -= 4
+        flags.append("unexpected_section")
+        notes.append("extra section heading was included")
+    missing_by_contract = [
+        [field_name for field_name in field_set if not _has_required_field_line(text, field_name)]
+        for field_set in required_field_sets
+    ]
+    if not any(not missing for missing in missing_by_contract):
+        for field_name in min(missing_by_contract, key=len):
+            score -= 3
+            flags.append("missing_required_field")
+            notes.append(f"missing required field: {field_name}")
     if score > 0 and _is_format_only(text, min_tokens=8):
         score = _cap_format_only(score, flags, notes)
     return _result(score, "pass" if score == 20 else "fail", evidence_flags=flags, notes=notes)
@@ -410,6 +462,11 @@ def score_product_communication(response_text):
     if len(options_lines) < 2:
         score -= 5
         flags.append("insufficient_options")
+
+    if score > 0 and _looks_like_chinese_mojibake(text):
+        score = min(score, 8)
+        flags.append("mojibake_detected")
+        notes.append("Chinese output appears garbled")
 
     if score > 0 and _is_format_only(text, min_tokens=14):
         score = _cap_format_only(score, flags, notes, cap=10)

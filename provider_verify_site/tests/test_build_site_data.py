@@ -506,6 +506,22 @@ next_action: "restricted_use"
                         "capability_score": None,
                         "coding_score": 100,
                         "coding_axis_score": 100,
+                        "core_capability_score": 90,
+                        "workflow_compatibility_score": 80,
+                        "score_groups": {
+                            "core_capability": {
+                                "score": 90,
+                                "earned": 36,
+                                "max_score": 40,
+                                "task_count": 2,
+                            },
+                            "workflow_compatibility": {
+                                "score": 80,
+                                "earned": 16,
+                                "max_score": 20,
+                                "task_count": 1,
+                            },
+                        },
                         "capability_tier": "TIER_STRONG",
                         "decision_v2": "TRIAL_RECOMMENDED",
                         "coverage_map": {
@@ -568,6 +584,9 @@ next_action: "restricted_use"
         self.assertIsNone(provider["capability_score"])
         self.assertEqual(provider["coding_axis_score"], 100)
         self.assertEqual(provider["coding_score"], 100)
+        self.assertEqual(provider["core_capability_score"], 90)
+        self.assertEqual(provider["workflow_compatibility_score"], 80)
+        self.assertEqual(provider["score_groups"]["core_capability"]["task_count"], 2)
         self.assertEqual(provider["capability_tier"], "TIER_UNKNOWN")
         self.assertEqual(provider["decision_v2"], "TRIAL_RECOMMENDED")
         self.assertIn("full general capability", provider["not_proven"])
@@ -797,6 +816,10 @@ next_action: "restricted_use"
         self.assertEqual(provider["coding_axis_score"], 40)
         self.assertEqual(provider["decision"], "LIMITED_USE")
         self.assertEqual(provider["decision_v2"], "LIMITED_USE")
+        self.assertEqual(provider["core_capability_score"], 85)
+        self.assertEqual(provider["workflow_compatibility_score"], 100)
+        self.assertEqual(provider["score_groups"]["core_capability"]["task_count"], 4)
+        self.assertEqual(provider["score_groups"]["workflow_compatibility"]["task_count"], 1)
         self.assertIn("legacy_decision_reinterpreted", provider["evidence_flags"])
         self.assertEqual(provider["recommended_use"], "needs_more_data")
 
@@ -954,6 +977,9 @@ next_action: "restricted_use"
         self.assertIn("verdict_scope", provider_props)
         self.assertIn("screen_score", provider_props)
         self.assertIn("coding_axis_score", provider_props)
+        self.assertIn("core_capability_score", provider_props)
+        self.assertIn("workflow_compatibility_score", provider_props)
+        self.assertIn("score_groups", provider_props)
         self.assertIn("decision_v2", provider_props)
         self.assertIn("not_proven", provider_props)
         self.assertIn("task_results", provider_props)

@@ -129,6 +129,25 @@ class DecisionAggregatorTests(unittest.TestCase):
         self.assertEqual(summary["capability_tier"], "TIER_USABLE")
         self.assertEqual(summary["decision"], "LIMITED_USE")
 
+    def test_reports_core_capability_separately_from_workflow_compatibility(self):
+        results = [
+            self.good_task("boundary_safety", 20),
+            self.good_task("instruction_following", 20),
+            self.good_task("evidence_honesty", 20),
+            self.good_task("reasoning_planning", 20),
+            self.good_task("data_table_analysis", 20),
+            self.good_task("coding_fix", 20),
+            self.good_task("product_communication", 0),
+        ]
+
+        summary = aggregate_task_results(results)
+
+        self.assertEqual(summary["capability_score"], 86)
+        self.assertEqual(summary["core_capability_score"], 100)
+        self.assertEqual(summary["workflow_compatibility_score"], 0)
+        self.assertEqual(summary["score_groups"]["core_capability"]["task_count"], 6)
+        self.assertEqual(summary["score_groups"]["workflow_compatibility"]["task_count"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

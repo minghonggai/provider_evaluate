@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Model Capability Report</title>
+    <title>Provider Model Evaluation Console</title>
     <script>
       if (window.location.protocol === "file:") {
         window.location.replace("http://127.0.0.1:8766/");
@@ -13,14 +13,14 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%232d5f8b'/%3E%3Cpath d='M4 8.8 6.3 11 12 5' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
     />
-    <link rel="stylesheet" href="styles.css?v=20260705-holdout-screen" />
+    <link rel="stylesheet" href="styles.css?v=20260705-check-explain" />
   </head>
   <body>
     <div class="app-shell">
       <header class="topbar">
         <div class="brand-block">
           <p class="eyebrow">model_evaluate</p>
-          <h1 data-i18n="app.title">模型能力评测报告</h1>
+          <h1 data-i18n="app.title">模型评测控制台</h1>
         </div>
         <nav class="reference-nav" aria-label="reference links">
           <a href="#quickScreenForm">本地评测</a>
@@ -42,32 +42,31 @@
       <main>
         <section class="intro-panel" aria-labelledby="introTitle">
           <div class="intro-copy">
-            <p class="intro-label" data-i18n="intro.label">Provider 能力体检</p>
-            <h2 id="introTitle" data-i18n="intro.title">验证 Provider 模型声明</h2>
+            <p class="intro-label" data-i18n="intro.label">Provider Evaluation Console</p>
+            <h2 id="introTitle" data-i18n="intro.title">把模型声明变成可审计证据</h2>
             <p data-i18n="intro.body">
-              填入 provider endpoint 和它声称的模型，本机会自动运行固定任务，
-              用本地证据判断实际模型表现是否与声明一致。
+              先读取 provider 自己返回的模型列表，再选择目标模型。系统会按固定任务运行、打分、保存原始输出，并把能力、代码可用性和路由风险分开呈现。
             </p>
             <div class="intro-actions">
-              <a href="#quickScreenForm" class="primary-link" data-i18n="intro.primaryAction">开始一次本地评测</a>
-              <span data-i18n="intro.secondaryNote">每个 provider / model 组合单独记录，互不合并。</span>
+              <a href="#quickScreenForm" class="primary-link" data-i18n="intro.primaryAction">新建评测</a>
+              <span data-i18n="intro.secondaryNote">API key 只用于本次会话；每个 provider / model 组合独立记录。</span>
             </div>
           </div>
 
           <div class="result-guide" aria-label="how to read results" data-i18n-aria-label="guide.aria">
-            <h2 data-i18n="guide.title">怎么看结果</h2>
+            <h2 data-i18n="guide.title">判读优先级</h2>
             <div class="guide-list">
               <div class="guide-item">
-                <strong data-i18n="guide.score.title">能力分</strong>
-                <span data-i18n="guide.score.body">只代表本次任务表现，不等于官方身份认证。</span>
+                <strong data-i18n="guide.score.title">能力证据</strong>
+                <span data-i18n="guide.score.body">7 项任务给出本地能力分，只代表这次任务表现。</span>
               </div>
               <div class="guide-item">
-                <strong data-i18n="guide.coding.title">代码信号</strong>
-                <span data-i18n="guide.coding.body">判断是否能进入受控 coding 试用。</span>
+                <strong data-i18n="guide.coding.title">代码准入</strong>
+                <span data-i18n="guide.coding.body">代码轴单独判断是否能进入受控 coding 试用。</span>
               </div>
               <div class="guide-item">
-                <strong data-i18n="guide.route.title">路由风险</strong>
-                <span data-i18n="guide.route.body">单独标记 provider 是否透明、是否疑似降级。</span>
+                <strong data-i18n="guide.route.title">路由边界</strong>
+                <span data-i18n="guide.route.body">身份与路由风险单独标记，不替代能力评分。</span>
               </div>
             </div>
           </div>
@@ -225,6 +224,6 @@
       </main>
     </div>
 
-    <script src="app.js?v=20260705-holdout-screen"></script>
+    <script src="app.js?v=20260705-check-explain"></script>
   </body>
 </html>

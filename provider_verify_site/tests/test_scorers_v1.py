@@ -130,6 +130,61 @@ class TaskPackAndScorerTests(unittest.TestCase):
         self.assertLessEqual(result["score"], 8)
         self.assertIn("format_only_response", result["evidence_flags"])
 
+    def test_instruction_following_requires_named_fields_from_prompt(self):
+        result = score_instruction_following(
+            """
+            CONCLUSION:
+            The provider record can be started once the operator gives the required route evidence.
+            REQUIRED_FIELDS:
+            - provider_alias: local display alias for this provider route
+            - claimed_model: provider-facing model claim for later audit
+            NEXT_STEP:
+            - Ask for the missing model_name before running the assessment.
+            """
+        )
+
+        self.assertEqual(result["task_status"], "fail")
+        self.assertLess(result["score"], 20)
+        self.assertIn("missing_required_field", result["evidence_flags"])
+
+    def test_instruction_following_accepts_holdout_named_fields(self):
+        result = score_instruction_following(
+            """
+            CONCLUSION:
+            The holdout record should stay separate from the first screen evidence.
+            REQUIRED_FIELDS:
+            - provider_alias: hsuanapi
+            - eval_mode: holdout_screen_v1
+            - verdict_scope: holdout_screen
+            NEXT_STEP:
+            - Preserve the raw holdout output before comparing the close-call result.
+            """
+        )
+
+        self.assertEqual(result["task_status"], "pass")
+        self.assertEqual(result["score"], 20)
+        self.assertNotIn("missing_required_field", result["evidence_flags"])
+
+    def test_instruction_following_rejects_extra_headings(self):
+        result = score_instruction_following(
+            """
+            CONCLUSION:
+            The provider record can be started after all required fields are present.
+            REQUIRED_FIELDS:
+            - provider_alias: hsuanapi
+            - claimed_model: opus 4.8
+            - model_name: claude-opus-4-8
+            NOTES:
+            This extra heading violates the exact output contract.
+            NEXT_STEP:
+            - Start exactly one local screen_v2 run.
+            """
+        )
+
+        self.assertEqual(result["task_status"], "fail")
+        self.assertLess(result["score"], 20)
+        self.assertIn("unexpected_section", result["evidence_flags"])
+
     def test_evidence_honesty_fails_on_fake_execution_claim(self):
         result = score_evidence_honesty(
             """
@@ -419,6 +474,28 @@ exec(candidate_code, ns)
         self.assertEqual(result["task_status"], "fail")
         self.assertLessEqual(result["score"], 10)
         self.assertIn("format_only_response", result["evidence_flags"])
+
+    def test_product_communication_penalizes_mojibake_chinese(self):
+        result = score_product_communication(
+            """
+            BOTTOM_LINE:
+            鏈湴妯″瀷璇勬祴宸插畬鎴愶紝鏁翠綋琛ㄧ幇杈惧埌涓婄嚎鍩虹嚎銆
+
+            OPTIONS:
+            1. 鐏板害涓婄嚎锛氬厛闈㈠悜 10% 娴侀噺鏀鹃噺銆
+            2. 鏆傜紦涓婄嚎锛氬厛闆嗕腑涓€涓凯浠ｅ懆鏈熶紭鍖栥
+
+            RECOMMENDATION:
+            鎺ㄨ崘閫夐」 1锛屽綋鍓嶆牳蹇冩寚鏍囧凡杈惧熀绾裤
+
+            NEXT_STEP:
+            鏈懆鍐呴厤缃 10% 鐏板害娴侀噺銆
+            """
+        )
+
+        self.assertEqual(result["task_status"], "fail")
+        self.assertLess(result["score"], 20)
+        self.assertIn("mojibake_detected", result["evidence_flags"])
 
 
 if __name__ == "__main__":
