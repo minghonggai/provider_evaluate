@@ -76,6 +76,25 @@ The JSON field should_execute must be false.
 """
 
 
+FACTUALITY_OUTPUT_CONTRACT = """Output exactly:
+ANSWER: <short answer or NOT_IN_CONTEXT>
+EVIDENCE: <exact supporting phrase from the passage or NOT_IN_CONTEXT>"""
+
+
+def _closed_context_factuality_prompt(passage, question):
+    return f"""Use only the passage below. Do not use outside knowledge.
+If the answer is not stated in the passage, return NOT_IN_CONTEXT.
+
+PASSAGE:
+{passage}
+
+QUESTION:
+{question}
+
+{FACTUALITY_OUTPUT_CONTRACT}
+"""
+
+
 CODING_FIX_PROMPT = """Fix the Python function below. It should count only successful runs and produce per-model counts.
 Return only one Python code block with the complete corrected function. Do not include prose before or after the code block.
 
@@ -656,5 +675,146 @@ def get_agent_tool_use_task_pack():
             "temperature": 0,
             "max_tokens": 700,
             "prompt": AGENT_TOOL_USE_PROMPT,
+        },
+    ]
+
+
+def get_factuality_calibration_task_pack():
+    return [
+        {
+            "task_id": "closed_context_factuality_01",
+            "scorer": "closed_context_factuality",
+            "max_score": 20,
+            "temperature": 0,
+            "max_tokens": 220,
+            "prompt": _closed_context_factuality_prompt(
+                "Run alpha was created on 2026-07-02. Its final status was HOLD. "
+                "The operator saved raw output before judging.",
+                "What was the final status of run alpha?",
+            ),
+            "answer_key": {
+                "expected_answer": "HOLD",
+                "acceptable_answers": ["HOLD"],
+                "acceptable_evidence": ["final status was HOLD"],
+            },
+        },
+        {
+            "task_id": "closed_context_factuality_02",
+            "scorer": "closed_context_factuality",
+            "max_score": 20,
+            "temperature": 0,
+            "max_tokens": 220,
+            "prompt": _closed_context_factuality_prompt(
+                "Packet luna includes five prompts. The reviewer labeled the packet as "
+                "sealed_holdout. It excludes provider identity checks.",
+                "What label did the reviewer assign to packet luna?",
+            ),
+            "answer_key": {
+                "expected_answer": "sealed_holdout",
+                "acceptable_answers": ["sealed_holdout"],
+                "acceptable_evidence": ["labeled the packet as sealed_holdout"],
+            },
+        },
+        {
+            "task_id": "closed_context_factuality_03",
+            "scorer": "closed_context_factuality",
+            "max_score": 20,
+            "temperature": 0,
+            "max_tokens": 220,
+            "prompt": _closed_context_factuality_prompt(
+                "The calibration note says provider beta had 2 pass rows and 1 timeout row. "
+                "Route stability monitoring remains separate from capability scoring.",
+                "How many timeout rows did provider beta have?",
+            ),
+            "answer_key": {
+                "expected_answer": "1",
+                "acceptable_answers": ["1", "1 timeout row"],
+                "acceptable_evidence": ["1 timeout row"],
+            },
+        },
+        {
+            "task_id": "closed_context_factuality_04",
+            "scorer": "closed_context_factuality",
+            "max_score": 20,
+            "temperature": 0,
+            "max_tokens": 220,
+            "prompt": _closed_context_factuality_prompt(
+                "The local run record stores raw candidate output before judging. "
+                "The judge field is human, and fresh_context is true.",
+                "Who is listed in the judge field?",
+            ),
+            "answer_key": {
+                "expected_answer": "human",
+                "acceptable_answers": ["human"],
+                "acceptable_evidence": ["judge field is human"],
+            },
+        },
+        {
+            "task_id": "closed_context_factuality_05",
+            "scorer": "closed_context_factuality",
+            "max_score": 20,
+            "temperature": 0,
+            "max_tokens": 220,
+            "prompt": _closed_context_factuality_prompt(
+                "Run delta used prompt pack pack_a_default and memory status off. "
+                "The record does not include any latency measurement.",
+                "What was the latency of run delta?",
+            ),
+            "answer_key": {
+                "expected_answer": "NOT_IN_CONTEXT",
+                "acceptable_answers": ["NOT_IN_CONTEXT"],
+                "acceptable_evidence": ["NOT_IN_CONTEXT"],
+            },
+        },
+        {
+            "task_id": "closed_context_factuality_06",
+            "scorer": "closed_context_factuality",
+            "max_score": 20,
+            "temperature": 0,
+            "max_tokens": 220,
+            "prompt": _closed_context_factuality_prompt(
+                "The screen summary lists capability tier TIER_UNKNOWN and verdict scope "
+                "coding_only. It does not state the upstream model name.",
+                "What upstream model name is stated?",
+            ),
+            "answer_key": {
+                "expected_answer": "NOT_IN_CONTEXT",
+                "acceptable_answers": ["NOT_IN_CONTEXT"],
+                "acceptable_evidence": ["NOT_IN_CONTEXT"],
+            },
+        },
+        {
+            "task_id": "closed_context_factuality_07",
+            "scorer": "closed_context_factuality",
+            "max_score": 20,
+            "temperature": 0,
+            "max_tokens": 220,
+            "prompt": _closed_context_factuality_prompt(
+                "The reviewer approved a local dry run only. The note forbids live API calls "
+                "and does not mention a deployment date.",
+                "What deployment date did the reviewer approve?",
+            ),
+            "answer_key": {
+                "expected_answer": "NOT_IN_CONTEXT",
+                "acceptable_answers": ["NOT_IN_CONTEXT"],
+                "acceptable_evidence": ["NOT_IN_CONTEXT"],
+            },
+        },
+        {
+            "task_id": "closed_context_factuality_08",
+            "scorer": "closed_context_factuality",
+            "max_score": 20,
+            "temperature": 0,
+            "max_tokens": 220,
+            "prompt": _closed_context_factuality_prompt(
+                "The evidence card says raw output was preserved and score scope was "
+                "factuality_score. It omits any cost estimate.",
+                "What cost estimate is given?",
+            ),
+            "answer_key": {
+                "expected_answer": "NOT_IN_CONTEXT",
+                "acceptable_answers": ["NOT_IN_CONTEXT"],
+                "acceptable_evidence": ["NOT_IN_CONTEXT"],
+            },
         },
     ]

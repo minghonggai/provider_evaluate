@@ -216,6 +216,19 @@ class QuickScreenFrontendTests(unittest.TestCase):
         self.assertIn("not live tool execution", js)
         self.assertNotIn('value="agent_tool_use_v1"', html)
 
+    def test_app_labels_factuality_scope_without_default_mode_entry(self):
+        html = Path("provider_verify_site/index.html").read_text(encoding="utf-8")
+        js = Path("provider_verify_site/app.js").read_text(encoding="utf-8")
+
+        self.assertIn("factuality_calibration", js)
+        self.assertIn("factuality_calibration_v1", js)
+        self.assertIn("factuality_score", js)
+        self.assertIn("detail.factualityScore", js)
+        self.assertIn("Factuality calibration", js)
+        self.assertIn("open-world factual knowledge", js)
+        self.assertIn("item.factuality_score", js)
+        self.assertNotIn('value="factuality_calibration_v1"', html)
+
     def test_run_result_shows_pipeline_progress(self):
         js = Path("provider_verify_site/app.js").read_text(encoding="utf-8")
         css = Path("provider_verify_site/styles.css").read_text(encoding="utf-8")

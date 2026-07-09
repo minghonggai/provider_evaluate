@@ -91,10 +91,12 @@
     },
     {
       "profile_id": "factuality_calibration_v1",
-      "status": "planned",
+      "status": "implemented_initial",
       "score_scope": "factuality_score",
       "may_emit_capability_score": false,
-      "recommended_task_count": "8-15"
+      "task_count": 8,
+      "recommended_task_count": "8-15",
+      "source_file": "provider_verify_site/scripts/task_pack_v1.py"
     }
   ],
   "axes": [
@@ -265,6 +267,94 @@
       "scorer": "tool_plan_schema",
       "max_score": 20,
       "requires_live_tools": false
+    },
+    {
+      "task_id": "closed_context_factuality_01",
+      "version": "v1",
+      "profile_id": "factuality_calibration_v1",
+      "axis": "factuality_calibration",
+      "score_role": "factuality_score",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "closed_context_factuality",
+      "max_score": 20
+    },
+    {
+      "task_id": "closed_context_factuality_02",
+      "version": "v1",
+      "profile_id": "factuality_calibration_v1",
+      "axis": "factuality_calibration",
+      "score_role": "factuality_score",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "closed_context_factuality",
+      "max_score": 20
+    },
+    {
+      "task_id": "closed_context_factuality_03",
+      "version": "v1",
+      "profile_id": "factuality_calibration_v1",
+      "axis": "factuality_calibration",
+      "score_role": "factuality_score",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "closed_context_factuality",
+      "max_score": 20
+    },
+    {
+      "task_id": "closed_context_factuality_04",
+      "version": "v1",
+      "profile_id": "factuality_calibration_v1",
+      "axis": "factuality_calibration",
+      "score_role": "factuality_score",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "closed_context_factuality",
+      "max_score": 20
+    },
+    {
+      "task_id": "closed_context_factuality_05",
+      "version": "v1",
+      "profile_id": "factuality_calibration_v1",
+      "axis": "factuality_calibration",
+      "score_role": "factuality_score",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "closed_context_factuality",
+      "max_score": 20
+    },
+    {
+      "task_id": "closed_context_factuality_06",
+      "version": "v1",
+      "profile_id": "factuality_calibration_v1",
+      "axis": "factuality_calibration",
+      "score_role": "factuality_score",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "closed_context_factuality",
+      "max_score": 20
+    },
+    {
+      "task_id": "closed_context_factuality_07",
+      "version": "v1",
+      "profile_id": "factuality_calibration_v1",
+      "axis": "factuality_calibration",
+      "score_role": "factuality_score",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "closed_context_factuality",
+      "max_score": 20
+    },
+    {
+      "task_id": "closed_context_factuality_08",
+      "version": "v1",
+      "profile_id": "factuality_calibration_v1",
+      "axis": "factuality_calibration",
+      "score_role": "factuality_score",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "closed_context_factuality",
+      "max_score": 20
     }
   ],
   "planned_tasks": [
@@ -309,7 +399,17 @@
       "axis": "factuality_calibration",
       "source_layer": "closed_context_evidence_packs",
       "preferred_scorer": "exact_match",
-      "status": "planned"
+      "status": "implemented_initial",
+      "implemented_as": [
+        "closed_context_factuality_01",
+        "closed_context_factuality_02",
+        "closed_context_factuality_03",
+        "closed_context_factuality_04",
+        "closed_context_factuality_05",
+        "closed_context_factuality_06",
+        "closed_context_factuality_07",
+        "closed_context_factuality_08"
+      ]
     },
     {
       "task_id": "mini_repo_bugfix_v1",

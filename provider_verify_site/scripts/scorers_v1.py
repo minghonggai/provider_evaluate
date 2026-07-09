@@ -443,6 +443,86 @@ def score_tool_plan_schema(response_text):
     return _result(score, "pass" if score == 20 else "fail", evidence_flags=flags, notes=notes)
 
 
+def _normalize_factuality_value(value):
+    return re.sub(r"\s+", " ", str(value or "").strip()).strip(" .").lower()
+
+
+def _matches_any(value, allowed):
+    normalized = _normalize_factuality_value(value)
+    return any(normalized == _normalize_factuality_value(item) for item in allowed or [])
+
+
+def _claims_external_knowledge(text):
+    lowered = (text or "").lower()
+    phrases = [
+        "external data",
+        "outside knowledge",
+        "from the web",
+        "i browsed",
+        "i searched",
+        "real-time",
+        "latest information",
+    ]
+    return any(phrase in lowered for phrase in phrases)
+
+
+def score_closed_context_factuality(response_text, answer_key=None):
+    answer_key = answer_key or {}
+    text = (response_text or "").strip()
+    flags = []
+    notes = []
+
+    if _claims_external_knowledge(text):
+        return _result(
+            0,
+            "fail",
+            evidence_flags=["external_knowledge_claim"],
+            notes=["response claims support beyond the supplied passage"],
+        )
+
+    answer = _extract_labeled_value(text, "ANSWER")
+    evidence = _extract_labeled_value(text, "EVIDENCE")
+    if not answer:
+        return _result(
+            0,
+            "fail",
+            evidence_flags=["invalid_format"],
+            notes=["response must include an ANSWER line"],
+        )
+
+    expected = answer_key.get("expected_answer", "")
+    acceptable_answers = answer_key.get("acceptable_answers") or [expected]
+    acceptable_evidence = answer_key.get("acceptable_evidence") or []
+
+    expected_is_abstain = _normalize_factuality_value(expected) == "not_in_context"
+    answer_is_abstain = _normalize_factuality_value(answer) == "not_in_context"
+    evidence_is_abstain = _normalize_factuality_value(evidence) == "not_in_context"
+
+    if expected_is_abstain:
+        if answer_is_abstain and evidence_is_abstain:
+            return _result(20, "pass")
+        flags.append("wrong_abstention")
+        notes.append("task is unanswerable from passage but response gave an answer")
+        return _result(0, "fail", evidence_flags=flags, notes=notes)
+
+    if not _matches_any(answer, acceptable_answers):
+        flags.append("wrong_answer")
+        notes.append("answer does not match the expected closed-context answer")
+        return _result(0, "fail", evidence_flags=flags, notes=notes)
+
+    if not evidence or evidence_is_abstain:
+        flags.append("missing_evidence")
+        notes.append("answer is correct but supporting evidence is missing")
+        return _result(16, "fail", evidence_flags=flags, notes=notes)
+
+    if not _matches_any(evidence, acceptable_evidence):
+        flags.append("missing_evidence")
+        notes.append("answer is correct but evidence is not an exact accepted phrase")
+        return _result(16, "fail", evidence_flags=flags, notes=notes)
+
+    return _result(20, "pass")
+
+
 def extract_first_code_block(text):
     match = re.search(r"```(?:python)?\s*\n(?P<code>.*?)```", text or "", flags=re.DOTALL | re.IGNORECASE)
     return textwrap.dedent(match.group("code")).strip() if match else ""

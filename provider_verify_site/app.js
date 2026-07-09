@@ -86,6 +86,10 @@ const UI_COPY = {
     "mode.agent_tool_use_v1.title": "工具规划探针运行",
     "mode.agent_tool_use_v1.note": "运行 1 个结构化工具规划任务，只验证 JSON 计划和安全边界，不执行真实工具。",
     "mode.agent_tool_use_v1.button": "开始工具规划探针",
+    "mode.factuality_calibration_v1.label": "事实性校准",
+    "mode.factuality_calibration_v1.title": "事实性校准运行",
+    "mode.factuality_calibration_v1.note": "运行 8 个闭卷证据任务，只验证模型能否依据给定材料回答或正确拒答。",
+    "mode.factuality_calibration_v1.button": "开始事实性校准",
     "plan.quick.label": "快速评估",
     "plan.quick.title": "快速评估运行",
     "plan.quick.note": "只跑当前选择的单项模式，适合日常快速筛查。",
@@ -193,6 +197,7 @@ const UI_COPY = {
     "detail.summaryVerdict.inconclusive": "未形成结论",
     "detail.reason.codingOnly": "这条记录只覆盖代码能力，不代表完整模型能力。",
     "detail.reason.agentToolUse": "这条记录只覆盖结构化工具规划，不代表真实工具执行可靠性或完整模型能力。",
+    "detail.reason.factuality": "这条记录只覆盖给定材料内的短事实回答和拒答，不代表开放世界事实知识或实时信息可靠性。",
     "detail.reason.screenHighCodingLow": "快速筛查表现较好，但代码轴信号偏弱，所以不能直接放开 coding 工作。",
     "detail.reason.routeRisk": "能力表现可以参考，但 provider 路由或身份仍不透明，不要把它当成已验证官方模型。",
     "detail.reason.failed": "这条记录没有形成可用能力结论，常见原因是超时、配额、协议或运行合约问题。",
@@ -201,6 +206,7 @@ const UI_COPY = {
     "detail.next.rerunCoding": "用修正后的代码探针重跑，先确认旧探针合约是否影响了低分。",
     "detail.next.runCoding": "如果准备用它写代码，补跑 Coding Probe。",
     "detail.next.agentToolUse": "如果准备用它接入工具链，下一步要做真实工具执行、权限隔离和失败恢复测试。",
+    "detail.next.factuality": "如果要判断通用可用性，下一步补跑能力筛查、长上下文和真实业务样本。",
     "detail.next.identityRoute": "补做 provider 身份、路由稳定性或长上下文检查，再决定是否扩大使用。",
     "detail.next.limitUse": "先限制在低风险、非关键任务；接近参考模型时再跑 holdout。",
     "detail.next.trial": "可以进入小范围试用，同时保留原始输出和失败样本。",
@@ -215,6 +221,8 @@ const UI_COPY = {
     "detail.codingAxisScore": "代码轴分",
     "detail.agentToolUseScore": "工具规划分",
     "detail.agentToolUseNote": "结构化工具规划证据；不是实际工具执行能力。",
+    "detail.factualityScore": "事实性校准分",
+    "detail.factualityNote": "闭卷证据事实性；不是开放世界事实知识。",
     "detail.coreCapabilityScore": "核心能力分",
     "detail.workflowCompatibilityScore": "工作流兼容分",
     "detail.codingScore": "Coding 分数",
@@ -342,6 +350,10 @@ const UI_COPY = {
     "mode.agent_tool_use_v1.title": "Tool Planning Probe Run",
     "mode.agent_tool_use_v1.note": "Run 1 structured tool-planning task that validates the JSON plan and safety boundary without executing real tools.",
     "mode.agent_tool_use_v1.button": "Start Tool Planning Probe",
+    "mode.factuality_calibration_v1.label": "Factuality Calibration",
+    "mode.factuality_calibration_v1.title": "Factuality Calibration Run",
+    "mode.factuality_calibration_v1.note": "Run 8 closed-context evidence tasks that test whether the model answers from the passage or abstains correctly.",
+    "mode.factuality_calibration_v1.button": "Start Factuality Calibration",
     "plan.quick.label": "Quick Assessment",
     "plan.quick.title": "Quick Assessment Run",
     "plan.quick.note": "Run only the selected single mode for daily triage.",
@@ -449,6 +461,7 @@ const UI_COPY = {
     "detail.summaryVerdict.inconclusive": "Inconclusive",
     "detail.reason.codingOnly": "This record only covers coding ability; it is not a full model capability result.",
     "detail.reason.agentToolUse": "This record only covers structured tool planning; it does not prove real tool-execution reliability or full model capability.",
+    "detail.reason.factuality": "This record only covers short factual answers and abstentions from supplied evidence; it does not prove open-world factual knowledge or freshness.",
     "detail.reason.screenHighCodingLow": "The screen signal is good but the coding-axis signal is weak, so coding work should not be opened broadly.",
     "detail.reason.routeRisk": "Capability evidence is usable, but provider route or identity remains opaque. Do not treat it as a verified official model.",
     "detail.reason.failed": "This record did not produce a usable capability verdict. Common causes are timeout, quota, protocol, or run-contract issues.",
@@ -457,6 +470,7 @@ const UI_COPY = {
     "detail.next.rerunCoding": "Rerun with the corrected coding probe before interpreting the old low score.",
     "detail.next.runCoding": "Run Coding Probe before using this route for coding work.",
     "detail.next.agentToolUse": "Before connecting tools, add real tool execution, permission isolation, and failure-recovery tests.",
+    "detail.next.factuality": "Before judging general usefulness, add capability screening, long-context checks, and real business samples.",
     "detail.next.identityRoute": "Add provider identity, route-stability, or long-context checks before widening use.",
     "detail.next.limitUse": "Keep it to low-risk, non-critical tasks; use holdout only if it is close to the reference model.",
     "detail.next.trial": "Start a small controlled trial and keep raw outputs plus failure cases.",
@@ -471,6 +485,8 @@ const UI_COPY = {
     "detail.codingAxisScore": "Coding axis score",
     "detail.agentToolUseScore": "Agent tool-use score",
     "detail.agentToolUseNote": "Structured tool-planning evidence; not live tool execution.",
+    "detail.factualityScore": "Factuality score",
+    "detail.factualityNote": "Closed-context evidence factuality; not open-world factual knowledge.",
     "detail.coreCapabilityScore": "Core capability score",
     "detail.workflowCompatibilityScore": "Workflow compatibility score",
     "detail.codingScore": "Coding score",
@@ -538,6 +554,7 @@ const EVAL_MODE_LABELS = {
   holdout_screen_v1: "mode.holdout_screen_v1.label",
   coding_probe_v1: "mode.coding_probe_v1.label",
   agent_tool_use_v1: "mode.agent_tool_use_v1.label",
+  factuality_calibration_v1: "mode.factuality_calibration_v1.label",
 };
 const EVAL_MODE_COPY = {
   quick_screen_v1: {
@@ -564,6 +581,11 @@ const EVAL_MODE_COPY = {
     title: "mode.agent_tool_use_v1.title",
     note: "mode.agent_tool_use_v1.note",
     button: "mode.agent_tool_use_v1.button",
+  },
+  factuality_calibration_v1: {
+    title: "mode.factuality_calibration_v1.title",
+    note: "mode.factuality_calibration_v1.note",
+    button: "mode.factuality_calibration_v1.button",
   },
 };
 const ASSESSMENT_PLAN_COPY = {
@@ -622,7 +644,9 @@ const VALUE_LABELS = {
     holdout_screen_triage: "临界复测判定",
     coding_only: "代码轴",
     agent_tool_use: "工具规划",
+    factuality_calibration: "事实性校准",
     tool_use_schema_triage: "工具规划格式判定",
+    factuality: "事实性",
     formal_relative: "正式对比",
     benchmark: "基准",
     identity: "身份",
@@ -632,6 +656,7 @@ const VALUE_LABELS = {
     holdout_screen_v1: "临界复测",
     coding_probe_v1: "代码能力探针",
     agent_tool_use_v1: "工具规划探针",
+    factuality_calibration_v1: "事实性校准",
     quality_screen_only: "仅质量筛选",
     single_session_1m_class_capability_verified: "单会话 1M 能力已观察",
     multi_session_1m_class_capability_verified: "多会话 1M 能力已观察",
@@ -660,6 +685,7 @@ const VALUE_LABELS = {
     data_analysis: "数据分析",
     coding: "代码能力",
     agent_tool_use: "工具规划",
+    factuality: "事实性",
     external_research: "外部研究",
     long_context: "长上下文",
     route_identity: "路由身份",
@@ -670,6 +696,14 @@ const VALUE_LABELS = {
     coding_fix: "代码修复",
     project_grounded_coding: "项目级代码任务",
     tool_plan_schema: "工具计划格式",
+    closed_context_factuality_01: "闭卷事实性 01",
+    closed_context_factuality_02: "闭卷事实性 02",
+    closed_context_factuality_03: "闭卷事实性 03",
+    closed_context_factuality_04: "闭卷事实性 04",
+    closed_context_factuality_05: "闭卷事实性 05",
+    closed_context_factuality_06: "闭卷事实性 06",
+    closed_context_factuality_07: "闭卷事实性 07",
+    closed_context_factuality_08: "闭卷事实性 08",
     product_communication: "产品沟通",
     missing_section: "缺少必需段落",
     missing_required_decision_step: "缺少关键决策步骤",
@@ -691,6 +725,9 @@ const VALUE_LABELS = {
     "non-coding capability axes": "非代码能力维度",
     "actual tool execution reliability": "真实工具执行可靠性",
     "live-system safety": "真实系统安全性",
+    "open-world factual knowledge": "开放世界事实知识",
+    "factual freshness beyond supplied evidence": "给定证据之外的事实新鲜度",
+    "long-form factuality": "长文本事实性",
   },
   en: {
     TIER_FLAGSHIP_CANDIDATE: "Flagship candidate",
@@ -735,7 +772,9 @@ const VALUE_LABELS = {
     holdout_screen_triage: "Close-call holdout triage",
     coding_only: "Coding-only",
     agent_tool_use: "Agent tool use",
+    factuality_calibration: "Factuality calibration",
     tool_use_schema_triage: "Tool-use schema triage",
+    factuality: "Factuality",
     formal_relative: "Formal relative",
     benchmark: "Benchmark",
     identity: "Identity",
@@ -745,6 +784,7 @@ const VALUE_LABELS = {
     holdout_screen_v1: "Close-Call Holdout",
     coding_probe_v1: "Coding Probe",
     agent_tool_use_v1: "Tool Planning Probe",
+    factuality_calibration_v1: "Factuality Calibration",
     quality_screen_only: "Quality screen only",
     single_session_1m_class_capability_verified: "Single-session 1M capability observed",
     multi_session_1m_class_capability_verified: "Multi-session 1M capability observed",
@@ -773,6 +813,7 @@ const VALUE_LABELS = {
     data_analysis: "Data analysis",
     coding: "Coding ability",
     agent_tool_use: "Tool planning",
+    factuality: "Factuality",
     external_research: "External research",
     long_context: "Long context",
     route_identity: "Route identity",
@@ -783,6 +824,14 @@ const VALUE_LABELS = {
     coding_fix: "Coding fix",
     project_grounded_coding: "Project-grounded coding",
     tool_plan_schema: "Tool plan schema",
+    closed_context_factuality_01: "Closed-context factuality 01",
+    closed_context_factuality_02: "Closed-context factuality 02",
+    closed_context_factuality_03: "Closed-context factuality 03",
+    closed_context_factuality_04: "Closed-context factuality 04",
+    closed_context_factuality_05: "Closed-context factuality 05",
+    closed_context_factuality_06: "Closed-context factuality 06",
+    closed_context_factuality_07: "Closed-context factuality 07",
+    closed_context_factuality_08: "Closed-context factuality 08",
     product_communication: "Product communication",
     missing_section: "Missing required section",
     missing_required_decision_step: "Missing required decision step",
@@ -804,6 +853,9 @@ const VALUE_LABELS = {
     "non-coding capability axes": "Non-coding capability axes",
     "actual tool execution reliability": "Actual tool execution reliability",
     "live-system safety": "Live-system safety",
+    "open-world factual knowledge": "Open-world factual knowledge",
+    "factual freshness beyond supplied evidence": "Factual freshness beyond supplied evidence",
+    "long-form factuality": "Long-form factuality",
   },
 };
 const TASK_METADATA = {
@@ -1090,6 +1142,18 @@ function clampPercent(value) {
 }
 
 function taskMeta(taskId) {
+  if (String(taskId || "").startsWith("closed_context_factuality_")) {
+    return {
+      purpose:
+        state.language === "zh"
+          ? "测试模型能否只依据给定材料回答短事实问题，并在材料没有答案时拒答。"
+          : "Checks whether the model answers short factual questions from supplied evidence and abstains when the passage lacks the answer.",
+      rule:
+        state.language === "zh"
+          ? "答案和证据都命中得 20 分；答案正确但证据缺失得 16 分；编造答案、格式错误或声称外部知识得 0 分。"
+          : "Correct answer plus accepted evidence earns 20; correct answer with missing evidence earns 16; hallucination, invalid format, or external-knowledge claims earn 0.",
+    };
+  }
   const fallback = {
     purpose:
       state.language === "zh"
@@ -1215,7 +1279,11 @@ function localizedList(values = [], emptyKey = "detail.noFlags") {
 }
 
 function primaryScore(item) {
-  return item.capability_score ?? item.screen_score ?? item.coding_axis_score ?? item.agent_tool_use_score;
+  return item.capability_score ??
+    item.screen_score ??
+    item.coding_axis_score ??
+    item.agent_tool_use_score ??
+    item.factuality_score;
 }
 
 function scoreGroup(item, groupId) {
@@ -1235,11 +1303,18 @@ function primaryScoreScope(item) {
   if (item.agent_tool_use_score !== null && item.agent_tool_use_score !== undefined) {
     return item.verdict_scope && item.verdict_scope !== "unknown" ? item.verdict_scope : "tool_use_schema_triage";
   }
+  if (item.factuality_score !== null && item.factuality_score !== undefined) {
+    return item.verdict_scope && item.verdict_scope !== "unknown" ? item.verdict_scope : "factuality_calibration";
+  }
   return item.verdict_scope || "unknown";
 }
 
 function isAgentToolUseScope(scoreScope) {
   return scoreScope === "agent_tool_use" || scoreScope === "tool_use_schema_triage";
+}
+
+function isFactualityScope(scoreScope) {
+  return scoreScope === "factuality_calibration";
 }
 
 function hasEvidenceFlag(item, flag) {
@@ -1307,6 +1382,8 @@ function buildExecutiveSummary(item) {
     reasonKey = "detail.reason.codingOnly";
   } else if (isAgentToolUseScope(scoreScope)) {
     reasonKey = "detail.reason.agentToolUse";
+  } else if (isFactualityScope(scoreScope)) {
+    reasonKey = "detail.reason.factuality";
   } else if (screenHighCodingLow) {
     reasonKey = "detail.reason.screenHighCodingLow";
   } else if (routeOpaque) {
@@ -1322,6 +1399,8 @@ function buildExecutiveSummary(item) {
     nextActionKey = "detail.next.rerunCoding";
   } else if (isAgentToolUseScope(scoreScope)) {
     nextActionKey = "detail.next.agentToolUse";
+  } else if (isFactualityScope(scoreScope)) {
+    nextActionKey = "detail.next.factuality";
   } else if (!hasMeasuredCoding(item) && item.can_use_for_coding !== false) {
     nextActionKey = "detail.next.runCoding";
   } else if (routeOpaque) {
@@ -1374,6 +1453,10 @@ function renderExecutiveSummary(item) {
           <span>${escapeHtml(t("detail.agentToolUseScore"))}</span>
           <strong>${escapeHtml(scoreText(item.agent_tool_use_score))}</strong>
         </div>
+        <div>
+          <span>${escapeHtml(t("detail.factualityScore"))}</span>
+          <strong>${escapeHtml(scoreText(item.factuality_score))}</strong>
+        </div>
       </div>
 
       <div class="detail-summary-blocks">
@@ -1408,6 +1491,7 @@ function renderScoreRationale(item) {
   const coreGroup = scoreGroup(item, "core_capability");
   const workflowGroup = scoreGroup(item, "workflow_compatibility");
   const agentToolUseGroup = scoreGroup(item, "agent_tool_use");
+  const factualityGroup = scoreGroup(item, "factuality");
   const coverage = item.coverage_map || {};
   const coverageItems = Object.entries(coverage).length
     ? Object.entries(coverage)
@@ -1436,6 +1520,10 @@ function renderScoreRationale(item) {
         <div class="score-rationale-card">
           <span>${escapeHtml(t("detail.agentToolUseScore"))}</span>
           <strong>${escapeHtml(scoreText(item.agent_tool_use_score ?? agentToolUseGroup.score))}</strong>
+        </div>
+        <div class="score-rationale-card">
+          <span>${escapeHtml(t("detail.factualityScore"))}</span>
+          <strong>${escapeHtml(scoreText(item.factuality_score ?? factualityGroup.score))}</strong>
         </div>
         <div class="score-rationale-card">
           <span>${escapeHtml(t("detail.taskCount"))}</span>
@@ -1664,6 +1752,7 @@ function scoreForRunResult(result) {
     result?.screen_score ??
     result?.coding_axis_score ??
     result?.agent_tool_use_score ??
+    result?.factuality_score ??
     result?.coding_score ??
     "N/A";
 }
@@ -2036,6 +2125,7 @@ function applyFilters() {
       item.coding_score,
       item.coding_axis_score,
       item.agent_tool_use_score,
+      item.factuality_score,
       item.context_capability,
       item.task_reliability,
       item.recommended_use,
@@ -2164,6 +2254,7 @@ function renderDetail() {
         ${kv(t("detail.workflowCompatibilityScore"), scoreText(item.workflow_compatibility_score))}
         ${kv(t("detail.codingAxisScore"), scoreText(item.coding_axis_score))}
         ${kv(t("detail.agentToolUseScore"), scoreText(item.agent_tool_use_score))}
+        ${kv(t("detail.factualityScore"), scoreText(item.factuality_score))}
         ${kv(t("detail.codingScore"), scoreText(item.coding_score))}
         ${kv(t("detail.codeStatus"), item.code_quality_status)}
         ${kv(t("detail.context"), item.context_capability)}

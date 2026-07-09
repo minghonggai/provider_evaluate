@@ -671,6 +671,84 @@ next_action: "restricted_use"
         self.assertIn("actual tool execution reliability", provider["not_proven"])
         self.assertEqual(provider["task_reliability"], "single_run")
 
+    def test_build_report_reads_factuality_score_as_scoped_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            run_report = (
+                root
+                / "auto_eval_runs"
+                / "2026-07-09"
+                / "2026-07-09-100500-factuality-route"
+                / "run_report.json"
+            )
+            run_report.parent.mkdir(parents=True)
+            task_results = [
+                {
+                    "task_id": f"closed_context_factuality_{index:02d}",
+                    "task_status": "pass",
+                    "score": 20,
+                    "max_score": 20,
+                    "hard_reject": False,
+                    "evidence_flags": [],
+                    "notes": [],
+                }
+                for index in range(1, 9)
+            ]
+            run_report.write_text(
+                json.dumps(
+                    {
+                        "run_id": "2026-07-09-100500-factuality-route",
+                        "provider_alias": "factuality_route",
+                        "claimed_model": "Claimed Factuality Model",
+                        "model_name": "claimed-factuality-model",
+                        "provider_protocol": "openai_chat",
+                        "eval_mode": "factuality_calibration_v1",
+                        "status": "completed",
+                        "created_at": "2026-07-09T10:05:00+08:00",
+                        "finished_at": "2026-07-09T10:06:00+08:00",
+                        "decision": "CONTINUE_TRIAL",
+                        "eval_profile": "factuality_calibration",
+                        "verdict_scope": "factuality_calibration",
+                        "factuality_score": 100,
+                        "capability_score": None,
+                        "screen_score": None,
+                        "coding_score": 0,
+                        "coding_axis_score": None,
+                        "agent_tool_use_score": None,
+                        "capability_tier": "TIER_UNKNOWN",
+                        "decision_v2": "TRIAL_RECOMMENDED",
+                        "coverage_map": {
+                            "factuality": "standard",
+                            "route_identity": "not_tested",
+                        },
+                        "not_proven": [
+                            "full general capability",
+                            "open-world factual knowledge",
+                        ],
+                        "hard_reject_triggered": False,
+                        "task_results": task_results,
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            report = build_report(root)
+
+        provider = report["providers"][0]
+        self.assertEqual(provider["eval_profile"], "factuality_calibration")
+        self.assertEqual(provider["verdict_scope"], "factuality_calibration")
+        self.assertEqual(provider["factuality_score"], 100)
+        self.assertIsNone(provider["capability_score"])
+        self.assertIsNone(provider["screen_score"])
+        self.assertIsNone(provider["coding_axis_score"])
+        self.assertEqual(provider["capability_tier"], "TIER_UNKNOWN")
+        self.assertEqual(provider["coverage_map"]["factuality"], "standard")
+        self.assertEqual(provider["score_groups"]["factuality"]["task_count"], 8)
+        self.assertEqual(provider["score_groups"]["factuality"]["score"], 100)
+        self.assertIn("open-world factual knowledge", provider["not_proven"])
+        self.assertEqual(provider["task_reliability"], "single_run")
+
     def test_auto_eval_build_reinterprets_legacy_quick_screen_as_screen_score(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -1053,11 +1131,14 @@ next_action: "restricted_use"
         self.assertIn("screen_score", provider_props)
         self.assertIn("coding_axis_score", provider_props)
         self.assertIn("agent_tool_use_score", provider_props)
+        self.assertIn("factuality_score", provider_props)
         self.assertIn("core_capability_score", provider_props)
         self.assertIn("workflow_compatibility_score", provider_props)
         self.assertIn("score_groups", provider_props)
         self.assertIn("agent_tool_use", provider_props["eval_profile"]["enum"])
+        self.assertIn("factuality_calibration", provider_props["eval_profile"]["enum"])
         self.assertIn("agent_tool_use_v1", provider_props["capability_status"]["enum"])
+        self.assertIn("factuality_calibration_v1", provider_props["capability_status"]["enum"])
         self.assertIn("decision_v2", provider_props)
         self.assertIn("not_proven", provider_props)
         self.assertIn("task_results", provider_props)
@@ -1080,6 +1161,29 @@ next_action: "restricted_use"
         self.assertEqual(implemented_tasks["tool_plan_schema"]["scorer"], "tool_plan_schema")
         self.assertEqual(planned_tasks["tool_plan_schema_v1"]["status"], "implemented_initial")
         self.assertEqual(planned_tasks["tool_plan_schema_v1"]["implemented_as"], "tool_plan_schema")
+
+    def test_manifest_marks_factuality_calibration_initial_support(self):
+        manifest_path = Path("provider_verify_site/eval_tasks/manifest_v1.json")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        profiles = {item["profile_id"]: item for item in manifest["profiles"]}
+        implemented_tasks = {item["task_id"]: item for item in manifest["implemented_tasks"]}
+        planned_tasks = {item["task_id"]: item for item in manifest["planned_tasks"]}
+
+        self.assertEqual(profiles["factuality_calibration_v1"]["status"], "implemented_initial")
+        self.assertEqual(profiles["factuality_calibration_v1"]["task_count"], 8)
+        self.assertEqual(profiles["factuality_calibration_v1"]["score_scope"], "factuality_score")
+        self.assertIs(profiles["factuality_calibration_v1"]["may_emit_capability_score"], False)
+        for index in range(1, 9):
+            task_id = f"closed_context_factuality_{index:02d}"
+            self.assertIn(task_id, implemented_tasks)
+            self.assertEqual(implemented_tasks[task_id]["profile_id"], "factuality_calibration_v1")
+            self.assertEqual(implemented_tasks[task_id]["scorer"], "closed_context_factuality")
+            self.assertEqual(implemented_tasks[task_id]["score_role"], "factuality_score")
+        self.assertEqual(planned_tasks["closed_context_factuality_v1"]["status"], "implemented_initial")
+        self.assertEqual(
+            planned_tasks["closed_context_factuality_v1"]["implemented_as"],
+            [f"closed_context_factuality_{index:02d}" for index in range(1, 9)],
+        )
 
     def test_write_report_creates_json_file(self):
         with tempfile.TemporaryDirectory() as tmp:

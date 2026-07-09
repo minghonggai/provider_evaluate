@@ -160,6 +160,19 @@ class DecisionAggregatorTests(unittest.TestCase):
         self.assertIsNone(summary["score_groups"]["core_capability"]["score"])
         self.assertIsNone(summary["score_groups"]["coding"]["score"])
 
+    def test_reports_factuality_score_group(self):
+        results = [
+            self.good_task(f"closed_context_factuality_{index:02d}", 20)
+            for index in range(1, 9)
+        ]
+
+        summary = aggregate_task_results(results)
+
+        self.assertEqual(summary["score_groups"]["factuality"]["score"], 100)
+        self.assertEqual(summary["score_groups"]["factuality"]["task_count"], 8)
+        self.assertIsNone(summary["score_groups"]["core_capability"]["score"])
+        self.assertIsNone(summary["score_groups"]["coding"]["score"])
+
 
 if __name__ == "__main__":
     unittest.main()
