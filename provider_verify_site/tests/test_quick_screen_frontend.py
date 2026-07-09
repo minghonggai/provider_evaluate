@@ -204,6 +204,18 @@ class QuickScreenFrontendTests(unittest.TestCase):
         self.assertIn("缺少必需段落", js)
         self.assertIn("本地测试通过", js)
 
+    def test_app_labels_agent_tool_use_scope_without_default_mode_entry(self):
+        html = Path("provider_verify_site/index.html").read_text(encoding="utf-8")
+        js = Path("provider_verify_site/app.js").read_text(encoding="utf-8")
+
+        self.assertIn("agent_tool_use", js)
+        self.assertIn("tool_use_schema_triage", js)
+        self.assertIn("agent_tool_use_score", js)
+        self.assertIn("detail.agentToolUseScore", js)
+        self.assertIn("Structured tool-planning evidence", js)
+        self.assertIn("not live tool execution", js)
+        self.assertNotIn('value="agent_tool_use_v1"', html)
+
     def test_run_result_shows_pipeline_progress(self):
         js = Path("provider_verify_site/app.js").read_text(encoding="utf-8")
         css = Path("provider_verify_site/styles.css").read_text(encoding="utf-8")

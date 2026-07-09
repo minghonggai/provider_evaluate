@@ -34,9 +34,10 @@ PROVIDER_FAILURE_CODES = {
     "PROVIDER_PROTOCOL_UNSUPPORTED",
     "TASK_RUNNER_ERROR",
 }
-SCOPED_EVAL_PROFILES = {"screen", "coding_only"}
+SCOPED_EVAL_PROFILES = {"screen", "coding_only", "agent_tool_use"}
 SCREEN_EVAL_MODES = {"quick_screen_v1", "screen_v2", "holdout_screen_v1"}
 CODING_ONLY_EVAL_MODES = {"coding_probe_v1"}
+AGENT_TOOL_USE_EVAL_MODES = {"agent_tool_use_v1"}
 CORE_CAPABILITY_TASK_IDS = {
     "boundary_safety",
     "instruction_following",
@@ -48,6 +49,7 @@ CORE_CAPABILITY_TASK_IDS = {
 }
 WORKFLOW_COMPATIBILITY_TASK_IDS = {"product_communication"}
 CODING_TASK_IDS = {"coding_fix", "project_grounded_coding"}
+AGENT_TOOL_USE_TASK_IDS = {"tool_plan_schema"}
 
 
 def parse_bool(value):
@@ -77,6 +79,8 @@ def infer_eval_profile(payload):
         return "screen"
     if eval_mode in CODING_ONLY_EVAL_MODES:
         return "coding_only"
+    if eval_mode in AGENT_TOOL_USE_EVAL_MODES:
+        return "agent_tool_use"
     return "unknown"
 
 
@@ -88,6 +92,8 @@ def infer_verdict_scope(payload, eval_profile):
         return "screen_triage"
     if eval_profile == "coding_only":
         return "coding_only"
+    if eval_profile == "agent_tool_use":
+        return "tool_use_schema_triage"
     return "unknown"
 
 
@@ -108,6 +114,7 @@ def score_groups_from_tasks(task_results):
         "core_capability": score_group_from_tasks(task_results, CORE_CAPABILITY_TASK_IDS),
         "workflow_compatibility": score_group_from_tasks(task_results, WORKFLOW_COMPATIBILITY_TASK_IDS),
         "coding": score_group_from_tasks(task_results, CODING_TASK_IDS),
+        "agent_tool_use": score_group_from_tasks(task_results, AGENT_TOOL_USE_TASK_IDS),
     }
 
 
@@ -120,6 +127,7 @@ def base_coverage_map():
         "data_analysis": "not_tested",
         "coding": "not_tested",
         "product_communication": "not_tested",
+        "agent_tool_use": "not_tested",
         "external_research": "not_tested",
         "long_context": "not_tested",
         "route_identity": "not_tested",
@@ -144,6 +152,8 @@ def default_coverage_map(eval_mode):
             coverage["data_analysis"] = "shallow"
     elif eval_mode in CODING_ONLY_EVAL_MODES:
         coverage["coding"] = "standard"
+    elif eval_mode in AGENT_TOOL_USE_EVAL_MODES:
+        coverage["agent_tool_use"] = "shallow"
     return coverage
 
 
@@ -164,10 +174,26 @@ def default_not_proven(eval_mode):
             "multi-session route stability",
             "non-coding capability axes",
         ]
+    if eval_mode in AGENT_TOOL_USE_EVAL_MODES:
+        return [
+            "full general capability",
+            "actual tool execution reliability",
+            "provider identity",
+            "live-system safety",
+            "long-context capability",
+            "multi-session route stability",
+        ]
     return []
 
 
-def default_decision_v2(eval_mode, run_status, hard_reject, screen_score, coding_axis_score):
+def default_decision_v2(
+    eval_mode,
+    run_status,
+    hard_reject,
+    screen_score,
+    coding_axis_score,
+    agent_tool_use_score=None,
+):
     if run_status != "completed":
         return "INCONCLUSIVE"
     if hard_reject:
@@ -182,6 +208,13 @@ def default_decision_v2(eval_mode, run_status, hard_reject, screen_score, coding
         return "NOT_RECOMMENDED"
     if eval_mode in CODING_ONLY_EVAL_MODES:
         score = int(coding_axis_score or 0)
+        if score >= 85:
+            return "TRIAL_RECOMMENDED"
+        if score >= 70:
+            return "LIMITED_USE"
+        return "NOT_RECOMMENDED"
+    if eval_mode in AGENT_TOOL_USE_EVAL_MODES:
+        score = int(agent_tool_use_score or 0)
         if score >= 85:
             return "TRIAL_RECOMMENDED"
         if score >= 70:
@@ -567,6 +600,7 @@ def compute_task_reliability(provider):
         provider.get("lite_gate_score") is not None
         or provider.get("screen_score") is not None
         or provider.get("coding_axis_score") is not None
+        or provider.get("agent_tool_use_score") is not None
         or provider.get("code_quality_score") is not None
         or provider.get("capability_score") is not None
         or provider.get("coding_score") is not None
@@ -862,6 +896,7 @@ def provider_from_auto_eval_run(root, path, warnings):
     screen_score = int_or_none(payload.get("screen_score"))
     coding_score = raw_coding_score
     coding_axis_score = int_or_none(payload.get("coding_axis_score"))
+    agent_tool_use_score = int_or_none(payload.get("agent_tool_use_score"))
     if screen_score is None and eval_profile == "screen":
         screen_score = raw_capability_score
     if coding_axis_score is None and eval_profile == "coding_only":
@@ -905,6 +940,8 @@ def provider_from_auto_eval_run(root, path, warnings):
     workflow_compatibility_score = int_or_none(payload.get("workflow_compatibility_score"))
     if workflow_compatibility_score is None:
         workflow_compatibility_score = score_groups.get("workflow_compatibility", {}).get("score")
+    if agent_tool_use_score is None and eval_profile == "agent_tool_use":
+        agent_tool_use_score = score_groups.get("agent_tool_use", {}).get("score")
     flags = extract_task_result_flags(payload.get("task_results"))
     if payload.get("hard_reject_triggered"):
         flags.append("hard_reject_triggered")
@@ -930,6 +967,7 @@ def provider_from_auto_eval_run(root, path, warnings):
             bool(payload.get("hard_reject_triggered")),
             screen_score,
             coding_axis_score,
+            agent_tool_use_score,
         ),
     )
     if (
@@ -988,6 +1026,7 @@ def provider_from_auto_eval_run(root, path, warnings):
         "code_quality_score": None,
         "screen_score": screen_score,
         "coding_axis_score": coding_axis_score,
+        "agent_tool_use_score": agent_tool_use_score,
         "core_capability_score": core_capability_score,
         "workflow_compatibility_score": workflow_compatibility_score,
         "score_groups": score_groups,

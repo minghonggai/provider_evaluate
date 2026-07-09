@@ -2,6 +2,7 @@ import unittest
 
 from provider_verify_site.scripts.scorers_v1 import score_coding_fix
 from provider_verify_site.scripts.task_pack_v1 import (
+    get_agent_tool_use_task_pack,
     get_coding_probe_task_pack,
     get_holdout_screen_task_pack,
     get_quick_screen_task_pack,
@@ -44,6 +45,18 @@ class QuickScreenPromptTests(unittest.TestCase):
         self.assertIn("model_evaluate", task["prompt"])
         self.assertIn("create_lite_gate_run", task["prompt"])
         self.assertIn("verifier_code", task)
+
+    def test_agent_tool_use_pack_contains_schema_task(self):
+        tasks = get_agent_tool_use_task_pack()
+
+        self.assertEqual(len(tasks), 1)
+        task = tasks[0]
+        self.assertEqual(task["task_id"], "tool_plan_schema")
+        self.assertEqual(task["scorer"], "tool_plan_schema")
+        self.assertEqual(task["max_score"], 20)
+        self.assertIn("JSON", task["prompt"])
+        self.assertIn("selected_tool", task["prompt"])
+        self.assertIn("should_execute", task["prompt"])
 
     def test_screen_v2_adds_reasoning_and_data_tasks(self):
         tasks = get_screen_v2_task_pack()

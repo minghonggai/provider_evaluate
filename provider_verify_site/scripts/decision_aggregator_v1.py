@@ -14,6 +14,9 @@ CODING_TASK_IDS = {
     "coding_fix",
     "project_grounded_coding",
 }
+AGENT_TOOL_USE_TASK_IDS = {
+    "tool_plan_schema",
+}
 
 
 def _score_group(task_results, task_ids):
@@ -34,6 +37,7 @@ def _score_groups(task_results):
         "core_capability": _score_group(task_results, CORE_CAPABILITY_TASK_IDS),
         "workflow_compatibility": _score_group(task_results, WORKFLOW_COMPATIBILITY_TASK_IDS),
         "coding": _score_group(task_results, CODING_TASK_IDS),
+        "agent_tool_use": _score_group(task_results, AGENT_TOOL_USE_TASK_IDS),
     }
 
 
