@@ -87,6 +87,12 @@ class LocalEvalServerTests(unittest.TestCase):
         payload["eval_mode"] = "agent_tool_use_v1"
         return payload
 
+    def sample_factuality_payload(self):
+        payload = self.sample_quick_screen_payload()
+        payload["provider_alias"] = "factuality_route"
+        payload["eval_mode"] = "factuality_calibration_v1"
+        return payload
+
     def test_safe_slug_keeps_ascii_and_collapses_separators(self):
         self.assertEqual(safe_slug("Opus 4.8 SYAPI"), "opus_4_8_syapi")
         self.assertEqual(safe_slug("provider/v2 (test)"), "provider_v2_test")
@@ -135,6 +141,11 @@ class LocalEvalServerTests(unittest.TestCase):
         normalized = validate_quick_screen_payload(self.sample_agent_tool_use_payload())
 
         self.assertEqual(normalized["eval_mode"], "agent_tool_use_v1")
+
+    def test_validate_quick_screen_payload_accepts_factuality_mode(self):
+        normalized = validate_quick_screen_payload(self.sample_factuality_payload())
+
+        self.assertEqual(normalized["eval_mode"], "factuality_calibration_v1")
 
     def test_validate_quick_screen_payload_defaults_claim_to_selected_model(self):
         payload = self.sample_quick_screen_payload()
@@ -645,6 +656,73 @@ source_prompt_file: {prompt_file}
         self.assertTrue(response_file_exists)
         self.assertTrue(score_file_exists)
         self.assertEqual(saved_response_text, response_text)
+
+    def test_create_factuality_run_marks_factuality_scope(self):
+        responses = iter(
+            [
+                "ANSWER: HOLD\nEVIDENCE: final status was HOLD",
+                "ANSWER: sealed_holdout\nEVIDENCE: labeled the packet as sealed_holdout",
+                "ANSWER: 1\nEVIDENCE: 1 timeout row",
+                "ANSWER: human\nEVIDENCE: judge field is human",
+                "ANSWER: NOT_IN_CONTEXT\nEVIDENCE: NOT_IN_CONTEXT",
+                "ANSWER: NOT_IN_CONTEXT\nEVIDENCE: NOT_IN_CONTEXT",
+                "ANSWER: NOT_IN_CONTEXT\nEVIDENCE: NOT_IN_CONTEXT",
+                "ANSWER: NOT_IN_CONTEXT\nEVIDENCE: NOT_IN_CONTEXT",
+            ]
+        )
+
+        def fake_runner(**_kwargs):
+            return {
+                "status": "ok",
+                "latency_ms": 12,
+                "finish_reason": "stop",
+                "response_text": next(responses),
+                "usage": {"total_tokens": 42},
+                "raw_json": {"ok": True},
+            }
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            now = datetime(2026, 7, 9, 10, 5, tzinfo=timezone.utc)
+
+            result = create_quick_screen_run(
+                root,
+                self.sample_factuality_payload(),
+                now=now,
+                runner=fake_runner,
+            )
+
+            run_dir = (root / result["report_path"]).parent
+            run_report = json.loads((run_dir / "run_report.json").read_text(encoding="utf-8"))
+            manifest = json.loads((run_dir / "run_manifest.json").read_text(encoding="utf-8"))
+            readback = read_quick_screen_run(root, result["run_id"])
+
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(run_report["eval_mode"], "factuality_calibration_v1")
+        self.assertEqual(run_report["eval_profile"], "factuality_calibration")
+        self.assertEqual(run_report["verdict_scope"], "factuality_calibration")
+        self.assertEqual(run_report["factuality_score"], 100)
+        self.assertEqual(readback["factuality_score"], 100)
+        self.assertIsNone(run_report["capability_score"])
+        self.assertEqual(run_report["capability_tier"], "TIER_UNKNOWN")
+        self.assertIsNone(run_report["screen_score"])
+        self.assertIsNone(run_report["coding_axis_score"])
+        self.assertIsNone(run_report["agent_tool_use_score"])
+        self.assertEqual(run_report["coverage_map"]["factuality"], "standard")
+        self.assertIn("open-world factual knowledge", run_report["not_proven"])
+        self.assertEqual(
+            manifest["task_ids"],
+            [
+                "closed_context_factuality_01",
+                "closed_context_factuality_02",
+                "closed_context_factuality_03",
+                "closed_context_factuality_04",
+                "closed_context_factuality_05",
+                "closed_context_factuality_06",
+                "closed_context_factuality_07",
+                "closed_context_factuality_08",
+            ],
+        )
 
     def test_create_screen_v2_run_executes_reasoning_and_data_tasks(self):
         responses = iter(

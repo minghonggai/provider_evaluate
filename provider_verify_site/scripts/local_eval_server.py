@@ -35,6 +35,7 @@ from provider_verify_site.scripts.provider_runner import (
 from provider_verify_site.scripts.scorers_v1 import (
     score_boundary_safety,
     score_coding_fix,
+    score_closed_context_factuality,
     score_data_table_analysis,
     score_evidence_honesty,
     score_instruction_following,
@@ -45,6 +46,7 @@ from provider_verify_site.scripts.scorers_v1 import (
 from provider_verify_site.scripts.task_pack_v1 import (
     get_agent_tool_use_task_pack,
     get_coding_probe_task_pack,
+    get_factuality_calibration_task_pack,
     get_holdout_screen_task_pack,
     get_quick_screen_task_pack,
     get_screen_v2_task_pack,
@@ -73,12 +75,14 @@ CODING_PROBE_EVAL_MODE = "coding_probe_v1"
 SCREEN_V2_EVAL_MODE = "screen_v2"
 HOLDOUT_SCREEN_EVAL_MODE = "holdout_screen_v1"
 AGENT_TOOL_USE_EVAL_MODE = "agent_tool_use_v1"
+FACTUALITY_CALIBRATION_EVAL_MODE = "factuality_calibration_v1"
 EVAL_MODES = {
     QUICK_SCREEN_EVAL_MODE,
     CODING_PROBE_EVAL_MODE,
     SCREEN_V2_EVAL_MODE,
     HOLDOUT_SCREEN_EVAL_MODE,
     AGENT_TOOL_USE_EVAL_MODE,
+    FACTUALITY_CALIBRATION_EVAL_MODE,
 }
 SCREEN_EVAL_MODES = {QUICK_SCREEN_EVAL_MODE, SCREEN_V2_EVAL_MODE, HOLDOUT_SCREEN_EVAL_MODE}
 PROVIDER_PROTOCOLS = {AUTO_PROTOCOL, "openai_chat", "anthropic_messages"}
@@ -92,6 +96,7 @@ SCORER_DISPATCH = {
     "coding_fix": score_coding_fix,
     "product_communication": score_product_communication,
     "tool_plan_schema": score_tool_plan_schema,
+    "closed_context_factuality": score_closed_context_factuality,
 }
 
 
@@ -426,6 +431,8 @@ def _score_task(task, response_text):
         raise LocalEvalError(f"unknown scorer: {task['scorer']}", error_code="SCORER_ERROR")
     if task["scorer"] == "coding_fix":
         return scorer(response_text, verifier_code=task["verifier_code"])
+    if task["scorer"] == "closed_context_factuality":
+        return scorer(response_text, answer_key=task.get("answer_key"))
     return scorer(response_text)
 
 
@@ -451,6 +458,7 @@ def _base_coverage_map():
         "coding": "not_tested",
         "product_communication": "not_tested",
         "agent_tool_use": "not_tested",
+        "factuality": "not_tested",
         "external_research": "not_tested",
         "long_context": "not_tested",
         "route_identity": "not_tested",
@@ -477,6 +485,8 @@ def _coverage_map_for_eval_mode(eval_mode):
         coverage["coding"] = "standard"
     elif eval_mode == AGENT_TOOL_USE_EVAL_MODE:
         coverage["agent_tool_use"] = "shallow"
+    elif eval_mode == FACTUALITY_CALIBRATION_EVAL_MODE:
+        coverage["factuality"] = "standard"
     return coverage
 
 
@@ -506,6 +516,17 @@ def _not_proven_for_eval_mode(eval_mode):
             "long-context capability",
             "multi-session route stability",
         ]
+    if eval_mode == FACTUALITY_CALIBRATION_EVAL_MODE:
+        return [
+            "full general capability",
+            "open-world factual knowledge",
+            "factual freshness beyond supplied evidence",
+            "long-form factuality",
+            "provider identity",
+            "long-context capability",
+            "multi-session route stability",
+            "production suitability",
+        ]
     return ["provider identity", "long-context capability", "multi-session route stability"]
 
 
@@ -529,6 +550,13 @@ def _decision_v2(eval_mode, summary):
             return "LIMITED_USE"
         return "NOT_RECOMMENDED"
     if eval_mode == AGENT_TOOL_USE_EVAL_MODE:
+        score = int(summary.get("capability_score") or 0)
+        if score >= 85:
+            return "TRIAL_RECOMMENDED"
+        if score >= 70:
+            return "LIMITED_USE"
+        return "NOT_RECOMMENDED"
+    if eval_mode == FACTUALITY_CALIBRATION_EVAL_MODE:
         score = int(summary.get("capability_score") or 0)
         if score >= 85:
             return "TRIAL_RECOMMENDED"
@@ -565,6 +593,8 @@ def _profile_scope_fields(eval_mode, summary, task_count):
                 if eval_mode == HOLDOUT_SCREEN_EVAL_MODE
                 else "screen_triage"
             ),
+            "factuality_score": None,
+            "agent_tool_use_score": None,
             "screen_score": summary["capability_score"],
             "coding_axis_score": summary["coding_score"],
             "capability_score": None,
@@ -576,6 +606,8 @@ def _profile_scope_fields(eval_mode, summary, task_count):
             **common,
             "eval_profile": "coding_only",
             "verdict_scope": "coding_only",
+            "factuality_score": None,
+            "agent_tool_use_score": None,
             "screen_score": None,
             "coding_axis_score": summary["coding_score"],
             "capability_score": None,
@@ -587,7 +619,21 @@ def _profile_scope_fields(eval_mode, summary, task_count):
             **common,
             "eval_profile": "agent_tool_use",
             "verdict_scope": "tool_use_schema_triage",
+            "factuality_score": None,
             "agent_tool_use_score": summary["capability_score"],
+            "screen_score": None,
+            "coding_axis_score": None,
+            "capability_score": None,
+            "capability_tier": "TIER_UNKNOWN",
+        }
+
+    if eval_mode == FACTUALITY_CALIBRATION_EVAL_MODE:
+        return {
+            **common,
+            "eval_profile": "factuality_calibration",
+            "verdict_scope": "factuality_calibration",
+            "factuality_score": summary["capability_score"],
+            "agent_tool_use_score": None,
             "screen_score": None,
             "coding_axis_score": None,
             "capability_score": None,
@@ -598,6 +644,8 @@ def _profile_scope_fields(eval_mode, summary, task_count):
         **common,
         "eval_profile": "unknown",
         "verdict_scope": "unknown",
+        "factuality_score": None,
+        "agent_tool_use_score": None,
         "screen_score": None,
         "coding_axis_score": None,
         "capability_score": summary["capability_score"],
@@ -652,6 +700,8 @@ def _run_quick_screen_tasks(root, run_dir, run_id, normalized, now=None, runner=
         task_pack = get_holdout_screen_task_pack()
     elif normalized["eval_mode"] == AGENT_TOOL_USE_EVAL_MODE:
         task_pack = get_agent_tool_use_task_pack()
+    elif normalized["eval_mode"] == FACTUALITY_CALIBRATION_EVAL_MODE:
+        task_pack = get_factuality_calibration_task_pack()
     else:
         task_pack = get_quick_screen_task_pack()
     protocol_resolved = resolve_provider_protocol(
@@ -856,6 +906,7 @@ def read_quick_screen_run(root, run_id):
             "coding_score": report.get("coding_score"),
             "coding_axis_score": report.get("coding_axis_score"),
             "agent_tool_use_score": report.get("agent_tool_use_score"),
+            "factuality_score": report.get("factuality_score"),
             "core_capability_score": report.get("core_capability_score"),
             "workflow_compatibility_score": report.get("workflow_compatibility_score"),
             "capability_tier": report.get("capability_tier"),
@@ -882,6 +933,7 @@ def read_quick_screen_run(root, run_id):
             "eval_profile": manifest.get("eval_profile"),
             "verdict_scope": manifest.get("verdict_scope"),
             "agent_tool_use_score": manifest.get("agent_tool_use_score"),
+            "factuality_score": manifest.get("factuality_score"),
             "report_path": manifest.get("report_path"),
         }
     raise LocalEvalError(f"run not found: {run_id}", status=404, error_code="RUN_NOT_FOUND")
@@ -909,6 +961,7 @@ def list_quick_screen_runs(root, limit=20):
                 "coding_score": report.get("coding_score"),
                 "coding_axis_score": report.get("coding_axis_score"),
                 "agent_tool_use_score": report.get("agent_tool_use_score"),
+                "factuality_score": report.get("factuality_score"),
                 "created_at": report.get("created_at"),
                 "report_path": report_path.relative_to(root).as_posix(),
             }
