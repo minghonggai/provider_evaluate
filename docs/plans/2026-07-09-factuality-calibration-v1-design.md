@@ -4,6 +4,25 @@ Date: 2026-07-09
 Project: provider_evaluate
 Status: approved direction, local implementation design
 
+## 中文评审版
+
+本设计建议新增 `factuality_calibration_v1` 评测 lane，用来判断候选模型是否能“只根据给定材料回答短事实问题”，以及“材料里没有答案时是否能拒答”。它解决的是事实性和幻觉风险：模型不能因为自己知道一些外部信息，就把材料里没有的内容编成答案。
+
+第一版采用平衡方案，共 8 题：
+
+- 4 题材料内有答案，检查模型能否答准并引用原文证据。
+- 4 题材料内无答案，检查模型是否返回 `NOT_IN_CONTEXT`，而不是凭经验或外部知识补答案。
+
+这个 lane 只输出独立的 `factuality_score`，不输出 `capability_score`。业务含义是：它只能证明“短事实闭卷材料题表现如何”，不能证明完整通用能力、开放世界知识、实时事实、provider 身份、长上下文能力或生产可用性。
+
+评审时重点看三点：
+
+1. 是否同意第一版用 8 题平衡方案，而不是更小 MVP 或更大的校准套件。
+2. 是否同意使用严格输出格式：`ANSWER` 和 `EVIDENCE`。
+3. 是否同意分数边界：`factuality_score` 必须独立展示，不能并入 `capability_score`。
+
+本设计不授权代码实现、真实 provider/API 调用、push、发布、生产动作或读取任何密钥。
+
 ## Goal
 
 Add a scoped `factuality_calibration_v1` lane to the local provider evaluation
