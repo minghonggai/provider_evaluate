@@ -90,6 +90,7 @@
               "screen_v2",
               "holdout_screen_v1",
               "agent_tool_use_v1",
+              "factuality_calibration_v1",
               "coding_probe_v1",
               "single_session_1m_class_capability_verified",
               "multi_session_1m_class_capability_verified"
@@ -109,7 +110,7 @@
           },
           "eval_profile": {
             "type": "string",
-            "enum": ["screen", "coding_only", "agent_tool_use", "formal_relative", "benchmark", "identity", "context_class", "unknown"]
+            "enum": ["screen", "coding_only", "agent_tool_use", "factuality_calibration", "formal_relative", "benchmark", "identity", "context_class", "unknown"]
           },
           "verdict_scope": { "type": "string" },
           "coverage_map": { "type": "object" },
@@ -121,6 +122,7 @@
           "screen_score": { "type": ["integer", "null"] },
           "coding_axis_score": { "type": ["integer", "null"] },
           "agent_tool_use_score": { "type": ["integer", "null"] },
+          "factuality_score": { "type": ["integer", "null"] },
           "core_capability_score": { "type": ["integer", "null"] },
           "workflow_compatibility_score": { "type": ["integer", "null"] },
           "score_groups": { "type": "object" },
