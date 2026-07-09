@@ -855,6 +855,7 @@ def read_quick_screen_run(root, run_id):
             "screen_score": report.get("screen_score"),
             "coding_score": report.get("coding_score"),
             "coding_axis_score": report.get("coding_axis_score"),
+            "agent_tool_use_score": report.get("agent_tool_use_score"),
             "core_capability_score": report.get("core_capability_score"),
             "workflow_compatibility_score": report.get("workflow_compatibility_score"),
             "capability_tier": report.get("capability_tier"),
@@ -880,6 +881,7 @@ def read_quick_screen_run(root, run_id):
             "eval_mode": manifest.get("eval_mode"),
             "eval_profile": manifest.get("eval_profile"),
             "verdict_scope": manifest.get("verdict_scope"),
+            "agent_tool_use_score": manifest.get("agent_tool_use_score"),
             "report_path": manifest.get("report_path"),
         }
     raise LocalEvalError(f"run not found: {run_id}", status=404, error_code="RUN_NOT_FOUND")
@@ -906,6 +908,7 @@ def list_quick_screen_runs(root, limit=20):
                 "screen_score": report.get("screen_score"),
                 "coding_score": report.get("coding_score"),
                 "coding_axis_score": report.get("coding_axis_score"),
+                "agent_tool_use_score": report.get("agent_tool_use_score"),
                 "created_at": report.get("created_at"),
                 "report_path": report_path.relative_to(root).as_posix(),
             }

@@ -621,6 +621,7 @@ source_prompt_file: {prompt_file}
             run_dir = (root / result["report_path"]).parent
             run_report = json.loads((run_dir / "run_report.json").read_text(encoding="utf-8"))
             manifest = json.loads((run_dir / "run_manifest.json").read_text(encoding="utf-8"))
+            readback = read_quick_screen_run(root, result["run_id"])
             response_file = run_dir / "tool_plan_schema_response.txt"
             score_file = run_dir / "tool_plan_schema_score.json"
             response_file_exists = response_file.exists()
@@ -632,6 +633,7 @@ source_prompt_file: {prompt_file}
         self.assertEqual(run_report["eval_profile"], "agent_tool_use")
         self.assertEqual(run_report["verdict_scope"], "tool_use_schema_triage")
         self.assertEqual(run_report["agent_tool_use_score"], 100)
+        self.assertEqual(readback["agent_tool_use_score"], 100)
         self.assertIsNone(run_report["capability_score"])
         self.assertEqual(run_report["capability_tier"], "TIER_UNKNOWN")
         self.assertIsNone(run_report["screen_score"])
