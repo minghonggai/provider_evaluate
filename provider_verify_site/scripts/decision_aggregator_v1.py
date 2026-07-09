@@ -17,6 +17,16 @@ CODING_TASK_IDS = {
 AGENT_TOOL_USE_TASK_IDS = {
     "tool_plan_schema",
 }
+FACTUALITY_TASK_IDS = {
+    "closed_context_factuality_01",
+    "closed_context_factuality_02",
+    "closed_context_factuality_03",
+    "closed_context_factuality_04",
+    "closed_context_factuality_05",
+    "closed_context_factuality_06",
+    "closed_context_factuality_07",
+    "closed_context_factuality_08",
+}
 
 
 def _score_group(task_results, task_ids):
@@ -38,6 +48,7 @@ def _score_groups(task_results):
         "workflow_compatibility": _score_group(task_results, WORKFLOW_COMPATIBILITY_TASK_IDS),
         "coding": _score_group(task_results, CODING_TASK_IDS),
         "agent_tool_use": _score_group(task_results, AGENT_TOOL_USE_TASK_IDS),
+        "factuality": _score_group(task_results, FACTUALITY_TASK_IDS),
     }
 
 
