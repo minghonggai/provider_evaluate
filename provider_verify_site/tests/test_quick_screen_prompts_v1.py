@@ -4,6 +4,7 @@ from provider_verify_site.scripts.scorers_v1 import score_coding_fix
 from provider_verify_site.scripts.task_pack_v1 import (
     get_agent_tool_use_task_pack,
     get_coding_probe_task_pack,
+    get_factuality_calibration_task_pack,
     get_holdout_screen_task_pack,
     get_quick_screen_task_pack,
     get_screen_v2_task_pack,
@@ -57,6 +58,37 @@ class QuickScreenPromptTests(unittest.TestCase):
         self.assertIn("JSON", task["prompt"])
         self.assertIn("selected_tool", task["prompt"])
         self.assertIn("should_execute", task["prompt"])
+
+    def test_factuality_calibration_pack_contains_balanced_closed_context_tasks(self):
+        tasks = get_factuality_calibration_task_pack()
+
+        self.assertEqual(len(tasks), 8)
+        self.assertEqual({task["scorer"] for task in tasks}, {"closed_context_factuality"})
+        self.assertEqual({task["max_score"] for task in tasks}, {20})
+        self.assertEqual({task["temperature"] for task in tasks}, {0})
+
+        answerable = [
+            task
+            for task in tasks
+            if task.get("answer_key", {}).get("expected_answer") != "NOT_IN_CONTEXT"
+        ]
+        unanswerable = [
+            task
+            for task in tasks
+            if task.get("answer_key", {}).get("expected_answer") == "NOT_IN_CONTEXT"
+        ]
+        self.assertEqual(len(answerable), 4)
+        self.assertEqual(len(unanswerable), 4)
+
+        for task in tasks:
+            self.assertTrue(task["task_id"].startswith("closed_context_factuality_"))
+            self.assertIn("ANSWER:", task["prompt"])
+            self.assertIn("EVIDENCE:", task["prompt"])
+            self.assertIn("NOT_IN_CONTEXT", task["prompt"])
+            self.assertIn("answer_key", task)
+            self.assertIn("expected_answer", task["answer_key"])
+            self.assertIn("acceptable_answers", task["answer_key"])
+            self.assertIn("acceptable_evidence", task["answer_key"])
 
     def test_screen_v2_adds_reasoning_and_data_tasks(self):
         tasks = get_screen_v2_task_pack()
