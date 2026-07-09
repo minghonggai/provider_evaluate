@@ -75,10 +75,12 @@
     },
     {
       "profile_id": "agent_tool_use_v1",
-      "status": "planned",
+      "status": "implemented_initial",
       "score_scope": "agent_tool_use_score",
       "may_emit_capability_score": false,
-      "recommended_task_count": "6-10"
+      "task_count": 1,
+      "recommended_task_count": "6-10",
+      "source_file": "provider_verify_site/scripts/task_pack_v1.py"
     },
     {
       "profile_id": "long_context_v1",
@@ -251,6 +253,18 @@
       "max_score": 20,
       "migration_target": "coding_probe_v2",
       "requires_sandbox": true
+    },
+    {
+      "task_id": "tool_plan_schema",
+      "version": "v1",
+      "profile_id": "agent_tool_use_v1",
+      "axis": "agent_tool_use",
+      "score_role": "agent_tool_use_score",
+      "source": "provider_verify_site/scripts/task_pack_v1.py",
+      "candidate_sees_answer": false,
+      "scorer": "tool_plan_schema",
+      "max_score": 20,
+      "requires_live_tools": false
     }
   ],
   "planned_tasks": [
@@ -311,7 +325,8 @@
       "axis": "agent_tool_use",
       "source_layer": "private_generated_tasks",
       "preferred_scorer": "json_schema",
-      "status": "planned"
+      "status": "implemented_initial",
+      "implemented_as": "tool_plan_schema"
     },
     {
       "task_id": "multi_needle_context_v1",

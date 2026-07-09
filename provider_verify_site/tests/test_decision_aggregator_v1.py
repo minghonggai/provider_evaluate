@@ -148,6 +148,18 @@ class DecisionAggregatorTests(unittest.TestCase):
         self.assertEqual(summary["score_groups"]["core_capability"]["task_count"], 6)
         self.assertEqual(summary["score_groups"]["workflow_compatibility"]["task_count"], 1)
 
+    def test_reports_agent_tool_use_score_group(self):
+        results = [
+            self.good_task("tool_plan_schema", 20),
+        ]
+
+        summary = aggregate_task_results(results)
+
+        self.assertEqual(summary["score_groups"]["agent_tool_use"]["score"], 100)
+        self.assertEqual(summary["score_groups"]["agent_tool_use"]["task_count"], 1)
+        self.assertIsNone(summary["score_groups"]["core_capability"]["score"])
+        self.assertIsNone(summary["score_groups"]["coding"]["score"])
+
 
 if __name__ == "__main__":
     unittest.main()

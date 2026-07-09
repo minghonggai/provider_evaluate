@@ -82,6 +82,10 @@ const UI_COPY = {
     "mode.coding_probe_v1.title": "代码能力探针运行",
     "mode.coding_probe_v1.note": "运行 1 个带本地 verifier 的项目级可执行 coding 任务。",
     "mode.coding_probe_v1.button": "开始代码能力探针",
+    "mode.agent_tool_use_v1.label": "工具规划探针",
+    "mode.agent_tool_use_v1.title": "工具规划探针运行",
+    "mode.agent_tool_use_v1.note": "运行 1 个结构化工具规划任务，只验证 JSON 计划和安全边界，不执行真实工具。",
+    "mode.agent_tool_use_v1.button": "开始工具规划探针",
     "plan.quick.label": "快速评估",
     "plan.quick.title": "快速评估运行",
     "plan.quick.note": "只跑当前选择的单项模式，适合日常快速筛查。",
@@ -188,6 +192,7 @@ const UI_COPY = {
     "detail.summaryVerdict.reject": "不建议使用",
     "detail.summaryVerdict.inconclusive": "未形成结论",
     "detail.reason.codingOnly": "这条记录只覆盖代码能力，不代表完整模型能力。",
+    "detail.reason.agentToolUse": "这条记录只覆盖结构化工具规划，不代表真实工具执行可靠性或完整模型能力。",
     "detail.reason.screenHighCodingLow": "快速筛查表现较好，但代码轴信号偏弱，所以不能直接放开 coding 工作。",
     "detail.reason.routeRisk": "能力表现可以参考，但 provider 路由或身份仍不透明，不要把它当成已验证官方模型。",
     "detail.reason.failed": "这条记录没有形成可用能力结论，常见原因是超时、配额、协议或运行合约问题。",
@@ -195,6 +200,7 @@ const UI_COPY = {
     "detail.reason.default": "当前证据只支持本地筛查结论，不能替代正式 benchmark 或官方身份验证。",
     "detail.next.rerunCoding": "用修正后的代码探针重跑，先确认旧探针合约是否影响了低分。",
     "detail.next.runCoding": "如果准备用它写代码，补跑 Coding Probe。",
+    "detail.next.agentToolUse": "如果准备用它接入工具链，下一步要做真实工具执行、权限隔离和失败恢复测试。",
     "detail.next.identityRoute": "补做 provider 身份、路由稳定性或长上下文检查，再决定是否扩大使用。",
     "detail.next.limitUse": "先限制在低风险、非关键任务；接近参考模型时再跑 holdout。",
     "detail.next.trial": "可以进入小范围试用，同时保留原始输出和失败样本。",
@@ -207,6 +213,8 @@ const UI_COPY = {
     "detail.capabilityScore": "能力分数",
     "detail.screenScore": "快速筛查分",
     "detail.codingAxisScore": "代码轴分",
+    "detail.agentToolUseScore": "工具规划分",
+    "detail.agentToolUseNote": "结构化工具规划证据；不是实际工具执行能力。",
     "detail.coreCapabilityScore": "核心能力分",
     "detail.workflowCompatibilityScore": "工作流兼容分",
     "detail.codingScore": "Coding 分数",
@@ -330,6 +338,10 @@ const UI_COPY = {
     "mode.coding_probe_v1.title": "Coding Probe Run",
     "mode.coding_probe_v1.note": "Run 1 executable project-grounded coding task with a local verifier.",
     "mode.coding_probe_v1.button": "Start Coding Probe",
+    "mode.agent_tool_use_v1.label": "Tool Planning Probe",
+    "mode.agent_tool_use_v1.title": "Tool Planning Probe Run",
+    "mode.agent_tool_use_v1.note": "Run 1 structured tool-planning task that validates the JSON plan and safety boundary without executing real tools.",
+    "mode.agent_tool_use_v1.button": "Start Tool Planning Probe",
     "plan.quick.label": "Quick Assessment",
     "plan.quick.title": "Quick Assessment Run",
     "plan.quick.note": "Run only the selected single mode for daily triage.",
@@ -436,6 +448,7 @@ const UI_COPY = {
     "detail.summaryVerdict.reject": "Not recommended",
     "detail.summaryVerdict.inconclusive": "Inconclusive",
     "detail.reason.codingOnly": "This record only covers coding ability; it is not a full model capability result.",
+    "detail.reason.agentToolUse": "This record only covers structured tool planning; it does not prove real tool-execution reliability or full model capability.",
     "detail.reason.screenHighCodingLow": "The screen signal is good but the coding-axis signal is weak, so coding work should not be opened broadly.",
     "detail.reason.routeRisk": "Capability evidence is usable, but provider route or identity remains opaque. Do not treat it as a verified official model.",
     "detail.reason.failed": "This record did not produce a usable capability verdict. Common causes are timeout, quota, protocol, or run-contract issues.",
@@ -443,6 +456,7 @@ const UI_COPY = {
     "detail.reason.default": "Current evidence supports only a local screening verdict, not a formal benchmark or official identity verification.",
     "detail.next.rerunCoding": "Rerun with the corrected coding probe before interpreting the old low score.",
     "detail.next.runCoding": "Run Coding Probe before using this route for coding work.",
+    "detail.next.agentToolUse": "Before connecting tools, add real tool execution, permission isolation, and failure-recovery tests.",
     "detail.next.identityRoute": "Add provider identity, route-stability, or long-context checks before widening use.",
     "detail.next.limitUse": "Keep it to low-risk, non-critical tasks; use holdout only if it is close to the reference model.",
     "detail.next.trial": "Start a small controlled trial and keep raw outputs plus failure cases.",
@@ -455,6 +469,8 @@ const UI_COPY = {
     "detail.capabilityScore": "Capability score",
     "detail.screenScore": "Screen score",
     "detail.codingAxisScore": "Coding axis score",
+    "detail.agentToolUseScore": "Agent tool-use score",
+    "detail.agentToolUseNote": "Structured tool-planning evidence; not live tool execution.",
     "detail.coreCapabilityScore": "Core capability score",
     "detail.workflowCompatibilityScore": "Workflow compatibility score",
     "detail.codingScore": "Coding score",
@@ -521,6 +537,7 @@ const EVAL_MODE_LABELS = {
   screen_v2: "mode.screen_v2.label",
   holdout_screen_v1: "mode.holdout_screen_v1.label",
   coding_probe_v1: "mode.coding_probe_v1.label",
+  agent_tool_use_v1: "mode.agent_tool_use_v1.label",
 };
 const EVAL_MODE_COPY = {
   quick_screen_v1: {
@@ -542,6 +559,11 @@ const EVAL_MODE_COPY = {
     title: "mode.coding_probe_v1.title",
     note: "mode.coding_probe_v1.note",
     button: "mode.coding_probe_v1.button",
+  },
+  agent_tool_use_v1: {
+    title: "mode.agent_tool_use_v1.title",
+    note: "mode.agent_tool_use_v1.note",
+    button: "mode.agent_tool_use_v1.button",
   },
 };
 const ASSESSMENT_PLAN_COPY = {
@@ -599,6 +621,8 @@ const VALUE_LABELS = {
     screen_triage: "筛查判定",
     holdout_screen_triage: "临界复测判定",
     coding_only: "代码轴",
+    agent_tool_use: "工具规划",
+    tool_use_schema_triage: "工具规划格式判定",
     formal_relative: "正式对比",
     benchmark: "基准",
     identity: "身份",
@@ -607,6 +631,7 @@ const VALUE_LABELS = {
     screen_v2: "能力筛查 v2",
     holdout_screen_v1: "临界复测",
     coding_probe_v1: "代码能力探针",
+    agent_tool_use_v1: "工具规划探针",
     quality_screen_only: "仅质量筛选",
     single_session_1m_class_capability_verified: "单会话 1M 能力已观察",
     multi_session_1m_class_capability_verified: "多会话 1M 能力已观察",
@@ -634,6 +659,7 @@ const VALUE_LABELS = {
     data_table_analysis: "数据表分析",
     data_analysis: "数据分析",
     coding: "代码能力",
+    agent_tool_use: "工具规划",
     external_research: "外部研究",
     long_context: "长上下文",
     route_identity: "路由身份",
@@ -643,11 +669,13 @@ const VALUE_LABELS = {
     not_tested: "未测试",
     coding_fix: "代码修复",
     project_grounded_coding: "项目级代码任务",
+    tool_plan_schema: "工具计划格式",
     product_communication: "产品沟通",
     missing_section: "缺少必需段落",
     missing_required_decision_step: "缺少关键决策步骤",
     missing_identity_boundary: "缺少身份边界说明",
     tests_passed: "本地测试通过",
+    operator_gate_preserved: "保留人工确认门",
     hard_reject_triggered: "触发硬拒绝",
     PROVIDER_REQUEST_FAILED: "provider 请求失败",
     AUTH_BLOCKED: "认证或权限被拒绝",
@@ -661,6 +689,8 @@ const VALUE_LABELS = {
     "multi-session route stability": "多会话路由稳定性",
     "production suitability": "生产可用性",
     "non-coding capability axes": "非代码能力维度",
+    "actual tool execution reliability": "真实工具执行可靠性",
+    "live-system safety": "真实系统安全性",
   },
   en: {
     TIER_FLAGSHIP_CANDIDATE: "Flagship candidate",
@@ -704,6 +734,8 @@ const VALUE_LABELS = {
     screen_triage: "Screen triage",
     holdout_screen_triage: "Close-call holdout triage",
     coding_only: "Coding-only",
+    agent_tool_use: "Agent tool use",
+    tool_use_schema_triage: "Tool-use schema triage",
     formal_relative: "Formal relative",
     benchmark: "Benchmark",
     identity: "Identity",
@@ -712,6 +744,7 @@ const VALUE_LABELS = {
     screen_v2: "Capability Screen",
     holdout_screen_v1: "Close-Call Holdout",
     coding_probe_v1: "Coding Probe",
+    agent_tool_use_v1: "Tool Planning Probe",
     quality_screen_only: "Quality screen only",
     single_session_1m_class_capability_verified: "Single-session 1M capability observed",
     multi_session_1m_class_capability_verified: "Multi-session 1M capability observed",
@@ -739,6 +772,7 @@ const VALUE_LABELS = {
     data_table_analysis: "Data table analysis",
     data_analysis: "Data analysis",
     coding: "Coding ability",
+    agent_tool_use: "Tool planning",
     external_research: "External research",
     long_context: "Long context",
     route_identity: "Route identity",
@@ -748,11 +782,13 @@ const VALUE_LABELS = {
     not_tested: "Not tested",
     coding_fix: "Coding fix",
     project_grounded_coding: "Project-grounded coding",
+    tool_plan_schema: "Tool plan schema",
     product_communication: "Product communication",
     missing_section: "Missing required section",
     missing_required_decision_step: "Missing required decision step",
     missing_identity_boundary: "Missing identity boundary",
     tests_passed: "Local tests passed",
+    operator_gate_preserved: "Operator gate preserved",
     hard_reject_triggered: "Hard reject triggered",
     PROVIDER_REQUEST_FAILED: "Provider request failed",
     AUTH_BLOCKED: "Authentication or permission blocked",
@@ -766,6 +802,8 @@ const VALUE_LABELS = {
     "multi-session route stability": "Multi-session route stability",
     "production suitability": "Production suitability",
     "non-coding capability axes": "Non-coding capability axes",
+    "actual tool execution reliability": "Actual tool execution reliability",
+    "live-system safety": "Live-system safety",
   },
 };
 const TASK_METADATA = {
@@ -837,6 +875,16 @@ const TASK_METADATA = {
     en: {
       purpose: "Checks project-grounded coding: implement within constraints, preserve boundaries, and generate verifiable results.",
       rule: "Runs the submitted code through a local verifier. Passing is a strong coding-axis signal; failing limits coding-use recommendations.",
+    },
+  },
+  tool_plan_schema: {
+    zh: {
+      purpose: "测试模型能否输出可解析的结构化工具计划，并保留人工确认、安全和不读取密钥的边界。",
+      rule: "只验证 JSON schema、字段和值，不执行工具、不调用真实 provider、不读取或保存 secrets。",
+    },
+    en: {
+      purpose: "Checks whether the model can produce a parseable structured tool plan while preserving operator, safety, and no-secret boundaries.",
+      rule: "Validates JSON schema, fields, and values only; it does not execute tools, call live providers, or read/store secrets.",
     },
   },
   product_communication: {
@@ -1167,7 +1215,7 @@ function localizedList(values = [], emptyKey = "detail.noFlags") {
 }
 
 function primaryScore(item) {
-  return item.capability_score ?? item.screen_score ?? item.coding_axis_score;
+  return item.capability_score ?? item.screen_score ?? item.coding_axis_score ?? item.agent_tool_use_score;
 }
 
 function scoreGroup(item, groupId) {
@@ -1184,7 +1232,14 @@ function primaryScoreScope(item) {
   if (item.coding_axis_score !== null && item.coding_axis_score !== undefined) {
     return item.verdict_scope && item.verdict_scope !== "unknown" ? item.verdict_scope : "coding_only";
   }
+  if (item.agent_tool_use_score !== null && item.agent_tool_use_score !== undefined) {
+    return item.verdict_scope && item.verdict_scope !== "unknown" ? item.verdict_scope : "tool_use_schema_triage";
+  }
   return item.verdict_scope || "unknown";
+}
+
+function isAgentToolUseScope(scoreScope) {
+  return scoreScope === "agent_tool_use" || scoreScope === "tool_use_schema_triage";
 }
 
 function hasEvidenceFlag(item, flag) {
@@ -1250,6 +1305,8 @@ function buildExecutiveSummary(item) {
   let reasonKey = "detail.reason.default";
   if (scoreScope === "coding_only") {
     reasonKey = "detail.reason.codingOnly";
+  } else if (isAgentToolUseScope(scoreScope)) {
+    reasonKey = "detail.reason.agentToolUse";
   } else if (screenHighCodingLow) {
     reasonKey = "detail.reason.screenHighCodingLow";
   } else if (routeOpaque) {
@@ -1263,6 +1320,8 @@ function buildExecutiveSummary(item) {
   let nextActionKey = "detail.next.collectMore";
   if (needsCodingRerun) {
     nextActionKey = "detail.next.rerunCoding";
+  } else if (isAgentToolUseScope(scoreScope)) {
+    nextActionKey = "detail.next.agentToolUse";
   } else if (!hasMeasuredCoding(item) && item.can_use_for_coding !== false) {
     nextActionKey = "detail.next.runCoding";
   } else if (routeOpaque) {
@@ -1311,6 +1370,10 @@ function renderExecutiveSummary(item) {
           <span>${escapeHtml(t("detail.codingAxisScore"))}</span>
           <strong>${escapeHtml(scoreText(item.coding_axis_score ?? item.coding_score))}</strong>
         </div>
+        <div>
+          <span>${escapeHtml(t("detail.agentToolUseScore"))}</span>
+          <strong>${escapeHtml(scoreText(item.agent_tool_use_score))}</strong>
+        </div>
       </div>
 
       <div class="detail-summary-blocks">
@@ -1344,6 +1407,7 @@ function renderScoreRationale(item) {
     : t("detail.codingMissing");
   const coreGroup = scoreGroup(item, "core_capability");
   const workflowGroup = scoreGroup(item, "workflow_compatibility");
+  const agentToolUseGroup = scoreGroup(item, "agent_tool_use");
   const coverage = item.coverage_map || {};
   const coverageItems = Object.entries(coverage).length
     ? Object.entries(coverage)
@@ -1368,6 +1432,10 @@ function renderScoreRationale(item) {
         <div class="score-rationale-card">
           <span>${escapeHtml(t("detail.workflowCompatibilityScore"))}</span>
           <strong>${escapeHtml(scoreText(item.workflow_compatibility_score ?? workflowGroup.score))}</strong>
+        </div>
+        <div class="score-rationale-card">
+          <span>${escapeHtml(t("detail.agentToolUseScore"))}</span>
+          <strong>${escapeHtml(scoreText(item.agent_tool_use_score ?? agentToolUseGroup.score))}</strong>
         </div>
         <div class="score-rationale-card">
           <span>${escapeHtml(t("detail.taskCount"))}</span>
@@ -1592,7 +1660,12 @@ async function loadProviderModels() {
 }
 
 function scoreForRunResult(result) {
-  return result?.capability_score ?? result?.screen_score ?? result?.coding_axis_score ?? result?.coding_score ?? "N/A";
+  return result?.capability_score ??
+    result?.screen_score ??
+    result?.coding_axis_score ??
+    result?.agent_tool_use_score ??
+    result?.coding_score ??
+    "N/A";
 }
 
 function decisionForRunResult(result) {
@@ -1962,6 +2035,7 @@ function applyFilters() {
       item.screen_score,
       item.coding_score,
       item.coding_axis_score,
+      item.agent_tool_use_score,
       item.context_capability,
       item.task_reliability,
       item.recommended_use,
@@ -2089,6 +2163,7 @@ function renderDetail() {
         ${kv(t("detail.coreCapabilityScore"), scoreText(item.core_capability_score))}
         ${kv(t("detail.workflowCompatibilityScore"), scoreText(item.workflow_compatibility_score))}
         ${kv(t("detail.codingAxisScore"), scoreText(item.coding_axis_score))}
+        ${kv(t("detail.agentToolUseScore"), scoreText(item.agent_tool_use_score))}
         ${kv(t("detail.codingScore"), scoreText(item.coding_score))}
         ${kv(t("detail.codeStatus"), item.code_quality_status)}
         ${kv(t("detail.context"), item.context_capability)}

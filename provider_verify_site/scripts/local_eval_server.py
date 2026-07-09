@@ -40,8 +40,10 @@ from provider_verify_site.scripts.scorers_v1 import (
     score_instruction_following,
     score_product_communication,
     score_reasoning_planning,
+    score_tool_plan_schema,
 )
 from provider_verify_site.scripts.task_pack_v1 import (
+    get_agent_tool_use_task_pack,
     get_coding_probe_task_pack,
     get_holdout_screen_task_pack,
     get_quick_screen_task_pack,
@@ -70,11 +72,13 @@ QUICK_SCREEN_EVAL_MODE = "quick_screen_v1"
 CODING_PROBE_EVAL_MODE = "coding_probe_v1"
 SCREEN_V2_EVAL_MODE = "screen_v2"
 HOLDOUT_SCREEN_EVAL_MODE = "holdout_screen_v1"
+AGENT_TOOL_USE_EVAL_MODE = "agent_tool_use_v1"
 EVAL_MODES = {
     QUICK_SCREEN_EVAL_MODE,
     CODING_PROBE_EVAL_MODE,
     SCREEN_V2_EVAL_MODE,
     HOLDOUT_SCREEN_EVAL_MODE,
+    AGENT_TOOL_USE_EVAL_MODE,
 }
 SCREEN_EVAL_MODES = {QUICK_SCREEN_EVAL_MODE, SCREEN_V2_EVAL_MODE, HOLDOUT_SCREEN_EVAL_MODE}
 PROVIDER_PROTOCOLS = {AUTO_PROTOCOL, "openai_chat", "anthropic_messages"}
@@ -87,6 +91,7 @@ SCORER_DISPATCH = {
     "data_table_analysis": score_data_table_analysis,
     "coding_fix": score_coding_fix,
     "product_communication": score_product_communication,
+    "tool_plan_schema": score_tool_plan_schema,
 }
 
 
@@ -445,6 +450,7 @@ def _base_coverage_map():
         "data_analysis": "not_tested",
         "coding": "not_tested",
         "product_communication": "not_tested",
+        "agent_tool_use": "not_tested",
         "external_research": "not_tested",
         "long_context": "not_tested",
         "route_identity": "not_tested",
@@ -469,6 +475,8 @@ def _coverage_map_for_eval_mode(eval_mode):
             coverage["data_analysis"] = "shallow"
     elif eval_mode == CODING_PROBE_EVAL_MODE:
         coverage["coding"] = "standard"
+    elif eval_mode == AGENT_TOOL_USE_EVAL_MODE:
+        coverage["agent_tool_use"] = "shallow"
     return coverage
 
 
@@ -489,6 +497,15 @@ def _not_proven_for_eval_mode(eval_mode):
             "multi-session route stability",
             "non-coding capability axes",
         ]
+    if eval_mode == AGENT_TOOL_USE_EVAL_MODE:
+        return [
+            "full general capability",
+            "actual tool execution reliability",
+            "provider identity",
+            "live-system safety",
+            "long-context capability",
+            "multi-session route stability",
+        ]
     return ["provider identity", "long-context capability", "multi-session route stability"]
 
 
@@ -506,6 +523,13 @@ def _decision_v2(eval_mode, summary):
         return "NOT_RECOMMENDED"
     if eval_mode == CODING_PROBE_EVAL_MODE:
         score = int(summary.get("coding_score") or 0)
+        if score >= 85:
+            return "TRIAL_RECOMMENDED"
+        if score >= 70:
+            return "LIMITED_USE"
+        return "NOT_RECOMMENDED"
+    if eval_mode == AGENT_TOOL_USE_EVAL_MODE:
+        score = int(summary.get("capability_score") or 0)
         if score >= 85:
             return "TRIAL_RECOMMENDED"
         if score >= 70:
@@ -554,6 +578,18 @@ def _profile_scope_fields(eval_mode, summary, task_count):
             "verdict_scope": "coding_only",
             "screen_score": None,
             "coding_axis_score": summary["coding_score"],
+            "capability_score": None,
+            "capability_tier": "TIER_UNKNOWN",
+        }
+
+    if eval_mode == AGENT_TOOL_USE_EVAL_MODE:
+        return {
+            **common,
+            "eval_profile": "agent_tool_use",
+            "verdict_scope": "tool_use_schema_triage",
+            "agent_tool_use_score": summary["capability_score"],
+            "screen_score": None,
+            "coding_axis_score": None,
             "capability_score": None,
             "capability_tier": "TIER_UNKNOWN",
         }
@@ -614,6 +650,8 @@ def _run_quick_screen_tasks(root, run_dir, run_id, normalized, now=None, runner=
         task_pack = get_screen_v2_task_pack()
     elif normalized["eval_mode"] == HOLDOUT_SCREEN_EVAL_MODE:
         task_pack = get_holdout_screen_task_pack()
+    elif normalized["eval_mode"] == AGENT_TOOL_USE_EVAL_MODE:
+        task_pack = get_agent_tool_use_task_pack()
     else:
         task_pack = get_quick_screen_task_pack()
     protocol_resolved = resolve_provider_protocol(
@@ -817,6 +855,7 @@ def read_quick_screen_run(root, run_id):
             "screen_score": report.get("screen_score"),
             "coding_score": report.get("coding_score"),
             "coding_axis_score": report.get("coding_axis_score"),
+            "agent_tool_use_score": report.get("agent_tool_use_score"),
             "core_capability_score": report.get("core_capability_score"),
             "workflow_compatibility_score": report.get("workflow_compatibility_score"),
             "capability_tier": report.get("capability_tier"),
@@ -842,6 +881,7 @@ def read_quick_screen_run(root, run_id):
             "eval_mode": manifest.get("eval_mode"),
             "eval_profile": manifest.get("eval_profile"),
             "verdict_scope": manifest.get("verdict_scope"),
+            "agent_tool_use_score": manifest.get("agent_tool_use_score"),
             "report_path": manifest.get("report_path"),
         }
     raise LocalEvalError(f"run not found: {run_id}", status=404, error_code="RUN_NOT_FOUND")
@@ -868,6 +908,7 @@ def list_quick_screen_runs(root, limit=20):
                 "screen_score": report.get("screen_score"),
                 "coding_score": report.get("coding_score"),
                 "coding_axis_score": report.get("coding_axis_score"),
+                "agent_tool_use_score": report.get("agent_tool_use_score"),
                 "created_at": report.get("created_at"),
                 "report_path": report_path.relative_to(root).as_posix(),
             }
